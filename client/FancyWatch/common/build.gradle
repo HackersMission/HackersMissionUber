@@ -22,5 +22,10 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:22.2.1'
+    compile 'com.mcxiaoke.volley:library:1.0.+'
+    compile 'com.makeramen:roundedimageview:2.1.1'
+    compile 'com.android.support:gridlayout-v7:22.0.+'
+    compile 'com.android.support:recyclerview-v7:22.2.0'
     compile files('libs/mobvoi-api.jar')
+    compile files('libs/ormlite-android-4.49-SNAPSHOT.jar')
 }
