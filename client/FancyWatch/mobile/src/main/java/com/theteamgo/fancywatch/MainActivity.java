@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
@@ -17,6 +18,7 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.api.ResultCallback;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
+import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
 //import com.mobvoi.android.wearable.DataEvent;
@@ -125,6 +127,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     @Override
     public void onConnected(Bundle bundle) {
         mResolvingError = false;
+        Wearable.DataApi.addListener(mMobvoiApiClient, this);
+        Wearable.MessageApi.addListener(mMobvoiApiClient, this);
+        Wearable.NodeApi.addListener(mMobvoiApiClient, this);
         Log.d(TAG, "connected");
     }
 
@@ -147,6 +152,18 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     public void onMessageReceived(MessageEvent messageEvent) {
         Log.d(TAG, "onMessageReceived() A message from watch was received:" + messageEvent
                 .getRequestId() + " " + messageEvent.getPath());
+        int type = Integer.valueOf(messageEvent.getPath());
+        String s = "";
+        if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
+            s = "turn wrist twice";
+        } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
+            s = "turn wrist up";
+        } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
+            s = "turn wrist down";
+        } else {
+            s = "unknown gesture";
+        }
+        Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
     }
 
     @Override
