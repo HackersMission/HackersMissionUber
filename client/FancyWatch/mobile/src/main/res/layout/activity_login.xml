@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#f5f5f9">
+
+    <LinearLayout
+        android:id="@+id/bg"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:orientation="vertical"
+        android:background="#e85604"
+        >
+
+        <ImageView
+            android:id="@+id/user_icon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:src="@drawable/icon"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="登 录"
+            android:textColor="@android:color/white"
+            android:textSize="20dp"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/content1"
+            android:layout_width="match_parent"
+            android:layout_height="90dp"
+
+            android:orientation="vertical"
+            android:background="@drawable/text_login"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="20dp">
+
+            <EditText
+                android:id="@+id/nickNameEditText"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@null"
+                android:textSize="16dp"
+                android:hint="用户名"
+                android:layout_marginLeft="60dp"
+                android:textColorHint="#bdced4"
+                android:textColor="#023654"
+                />
+
+            <EditText
+                android:id="@+id/password_EditText"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@null"
+                android:textSize="16dp"
+                android:inputType="textPassword"
+                android:hint="密码"
+                android:layout_marginLeft="60dp"
+                android:textColorHint="#bdced4"
+                android:textColor="#023654"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/loginButton"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="20dp"
+            android:layout_below="@id/content1">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="登录"
+                android:textSize="16dp"
+                android:clickable="true"
+                android:onClick="click_to_login"
+                android:textColor="@android:color/white"
+                android:background="#ea5903"
+                android:gravity="center_horizontal|center_vertical"/>
+        </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/registerlayout"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:layout_marginBottom="30dp"
+            >
+
+            <TextView
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                android:text="注册账号"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:clickable="true"
+                android:onClick="click_to_register"
+                android:layout_marginRight="2dp"
+                android:textColor="#507daf"
+                />
+
+        </RelativeLayout>
+    </RelativeLayout>
+</LinearLayout>
