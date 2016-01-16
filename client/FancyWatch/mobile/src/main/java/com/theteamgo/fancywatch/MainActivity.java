@@ -1,5 +1,9 @@
 package com.theteamgo.fancywatch;
 
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -37,6 +41,9 @@ import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
+import java.io.IOException;
+
+import co.mobiwise.playerview.MusicPlayerView;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -47,6 +54,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private static final String TAG = "MainActivity";
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
+    private Context context;
+    public MediaPlayer mediaPlayer;
+
+
+    private MusicPlayerView mpv;
+
+
     private Handler mHandler;
 
     @Override
@@ -55,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        context = this;
 
         VolleyUtil volleyUtil = new VolleyUtil(this);
         Log.d(TAG, "created");
@@ -64,6 +79,41 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
+            mediaPlayer.prepare();//prepare之后自动播放
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mpv = (MusicPlayerView) findViewById(R.id.mpv);
+        mpv.setCoverURL("http://pic.qingting.fm/2015/0713/20150713092157685.jpg!200");
+        mpv.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (mpv.isRotating()) {
+                    mpv.stop();
+                    mediaPlayer.pause();
+                } else {
+                    mpv.start();
+//                    player = ExoPlayer.Factory.newInstance(4);
+//                    Uri uri = Uri.parse("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
+//                    Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
+//                    DataSource dataSource = new DefaultUriDataSource(context, null, userAgent);
+//                    ExtractorSampleSource sampleSource = new ExtractorSampleSource(
+//                            uri, dataSource, allocator, BUFFER_SEGMENT_COUNT * BUFFER_SEGMENT_SIZE);
+//                    MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
+//                    player.prepare(null, audioRenderer);
+//                    player.setPlayWhenReady(true);
+//                    player.release(); // Don’t forget to release when done!
+                    mediaPlayer.start();
+                }
+            }
+        });
+
     }
 
     @Override
