@@ -12,7 +12,8 @@
         android:layout_centerHorizontal="true"
         android:textColor="@android:color/white"
         android:textSize="22sp"
-        android:text="Rock With You"
+        android:maxLines="1"
+        android:maxWidth="300dp"
         android:layout_marginTop="50dp"/>
 
 
@@ -22,8 +23,9 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textColor="#80FFFFFF"
+        android:maxLines="1"
+        android:maxWidth="200dp"
         android:textSize="15sp"
-        android:text="Michael Jackson"
         android:layout_marginTop="10dp"
         android:layout_below="@+id/textViewSong"/>
 
