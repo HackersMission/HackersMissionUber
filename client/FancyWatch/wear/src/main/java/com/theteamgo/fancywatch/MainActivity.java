@@ -2,9 +2,11 @@ package com.theteamgo.fancywatch;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
@@ -12,6 +14,9 @@ import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
 import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
+import com.mobvoi.android.common.api.ResultCallback;
+import com.mobvoi.android.gesture.GestureType;
+import com.mobvoi.android.gesture.MobvoiGestureClient;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataEvent;
 import com.mobvoi.android.wearable.DataEventBuffer;
@@ -22,15 +27,20 @@ import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 public class MainActivity extends Activity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
+    public static final String START_ACTIVITY_PATH = "/start/MainActivity";
     private TextView mTextView;
-
-    private static final String TAG = "MainActivity";
-
+    private Handler mHandler;
+    private String mNode;
+    private static final String TAG = "WearMainActivity";
     private MobvoiApiClient mMobvoiApiClient;
+    private MobvoiGestureClient mMobvoiGestureClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +53,79 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                 mTextView = (TextView) stub.findViewById(R.id.text);
             }
         });
+        mHandler = new Handler();
 
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+    }
+
+
+    private void sendGestureMessage(int type) {
+
+        Collection<String> nodes = getNodes();
+        for (String node : nodes) {
+            Wearable.MessageApi.sendMessage(
+                    mMobvoiApiClient, node, type+"", new byte[0]).setResultCallback(
+                    new ResultCallback<MessageApi.SendMessageResult>() {
+                        @Override
+                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                            if (!sendMessageResult.getStatus().isSuccess()) {
+                                Log.e(TAG, "Failed to send message with status code: "
+                                        + sendMessageResult.getStatus().getStatusCode());
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
+    private Collection<String> getNodes() {
+        HashSet<String> results = new HashSet<String>();
+        NodeApi.GetConnectedNodesResult nodes =
+                Wearable.NodeApi.getConnectedNodes(mMobvoiApiClient).await();
+
+        for (Node node : nodes.getNodes()) {
+            results.add(node.getId());
+        }
+        return results;
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "on resume");
         super.onResume();
+        Wearable.DataApi.addListener(mMobvoiApiClient, this);
+        Wearable.MessageApi.addListener(mMobvoiApiClient, this);
+        Wearable.NodeApi.addListener(mMobvoiApiClient, this);
         mMobvoiApiClient.connect();
+        mMobvoiGestureClient = MobvoiGestureClient.getInstance(GestureType.GROUP_TURN_WRIST);
+        mMobvoiGestureClient.register(MainActivity.this, new MobvoiGestureClient.IGestureDetectedCallback() {
+            @Override
+            public void onGestureDetected(final int type) {
+                Log.d("callback", "onGestureDetected type: " + type);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        String s = "";
+                        if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
+                            s = "turn wrist twice";
+                        } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
+                            s = "turn wrist up";
+                        } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
+                            s = "turn wrist down";
+                        } else {
+                            s = "unknown gesture";
+                        }
+                        sendGestureMessage(type);
+                        Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -64,20 +135,20 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         Wearable.MessageApi.removeListener(mMobvoiApiClient, this);
         Wearable.NodeApi.removeListener(mMobvoiApiClient, this);
         mMobvoiApiClient.disconnect();
+        mMobvoiGestureClient.unregister(this);
     }
 
     // ticwatch API
 
     @Override
     public void onConnected(Bundle bundle) {
-        Wearable.DataApi.addListener(mMobvoiApiClient, this);
-        Wearable.MessageApi.addListener(mMobvoiApiClient, this);
-        Wearable.NodeApi.addListener(mMobvoiApiClient, this);
+        Log.d(TAG, "connected");
+
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        LOGD(TAG, "connection suspended");
+        Log.d(TAG, "connection suspended");
     }
 
     @Override
@@ -92,22 +163,23 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        LOGD(TAG, "onMessageReceived: " + messageEvent);
+        Log.d(TAG, "onMessageReceived: " + messageEvent);
     }
 
     @Override
     public void onPeerConnected(Node node) {
-        LOGD(TAG, "Node Connected" + node.getId());
+        mNode = node.getId();
+        Log.d(TAG, "Node Connected" + node.getId());
     }
 
     @Override
     public void onPeerDisconnected(Node node) {
-        LOGD(TAG, "Node Disconnected" + node.getId());
+        Log.d(TAG, "Node Disconnected" + node.getId());
     }
 
     private static void LOGD(final String tag, String message) {
-        if (Log.isLoggable(tag, Log.DEBUG)) {
+        //if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, message);
-        }
+        //}
     }
 }
