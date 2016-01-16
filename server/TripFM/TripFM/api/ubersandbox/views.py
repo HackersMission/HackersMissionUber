@@ -102,7 +102,6 @@ class getRequestDetail(APIView):
 		data=request_details(res_json["request_id"],account_token.access_token)
 		return Response({"status":1, "info":"用户名或密码错误", "data":""})
 
-# class updateRequestStatus(APIView):
 
 
 class CancelRequest(APIView):
