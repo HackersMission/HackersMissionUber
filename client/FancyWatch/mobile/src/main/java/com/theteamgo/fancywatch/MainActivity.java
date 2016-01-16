@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Response;
@@ -77,17 +78,18 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private List<Song> songList = new ArrayList<>();
     private int playIndex = 0;
 
+    private TextView title;
+    private TextView subTitle;
+
     private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mpv = (MusicPlayerView) findViewById(R.id.mpv);
-        setSupportActionBar(toolbar);
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
+        title = (TextView) findViewById(R.id.textViewSong);
+        subTitle = (TextView) findViewById(R.id.textViewSinger);
         context = this;
 
         VolleyUtil volleyUtil = new VolleyUtil(this);
@@ -109,6 +111,43 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     }
 
+    public void GetPlayList() {
+        CustomRequest customRequest = new CustomRequest(Constant.PLAYLIST, null, this,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        JSONArray jsonArray = null;
+                        try {
+                            jsonArray = new JSONArray(response.getString("data"));
+
+                            songList.clear();
+                            for (int i = 0 ; i < jsonArray.length() ; i++) {
+                                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                                Song song = new Song();
+                                song.mediaUrl = jsonObject.getString("mediaUrl");
+                                song.mediaImageUrl = jsonObject.getString("mediaImageUrl");
+                                song.mediaTitle = jsonObject.getString("mediaTitle");
+                                song.mediaSubtitle = jsonObject.getString("mediaSubtitle");
+                                song.mediaLength = jsonObject.getInt("mediaLength");
+                                songList.add(song);
+                            }
+
+                            playAll();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        VolleyUtil.getmQueue().add(customRequest);
+    }
+
     private void playAll() {
         if (playIndex >= songList.size()) {
             return;
@@ -122,7 +161,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             e.printStackTrace();
         }
 
-
+        title.setText(songList.get(playIndex).mediaTitle);
+        subTitle.setText(songList.get(playIndex).mediaSubtitle);
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
         mpv.setOnClickListener(new View.OnClickListener() {
@@ -304,6 +344,16 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
 
+    }
+
+    public void togglePlayer() {
+        if (mpv.isRotating()) {
+            mpv.stop();
+            mediaPlayer.pause();
+        } else {
+            mpv.start();
+            mediaPlayer.start();
+        }
     }
 
     @Override
