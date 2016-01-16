@@ -70,7 +70,7 @@ public class LoginUberActivity extends AppCompatActivity {
     }
 
     private boolean checkRedirect(String url) {
-        //if (url.startsWith("REDIRECT_URL")) {
+        if (url.startsWith("REDIRECT_URL")) {
         Log.i("redirect", url);
             Uri uri = Uri.parse(url);
             String authorization_code = uri.getQueryParameter("code");
@@ -97,9 +97,9 @@ public class LoginUberActivity extends AppCompatActivity {
 
             VolleyUtil.getmQueue().add(customRequest);
             return true;
-        /*}
+        }
         else {
             return false;
-        }*/
+        }
     }
 }

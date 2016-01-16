@@ -32,33 +32,36 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void click_to_login(View v) {
-        String name = name_text.getText().toString();
-        String password = password_text.getText().toString();
-        name = "test1";
-        password = "12345";
-        CustomRequest customRequest = new CustomRequest(Constant.LOGIN + "?username=" + name + "&password=" + password, null, this,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            Log.i("data", response.toString());
-                            if (response.getInt("status") == 0) {
-                                Intent intent = new Intent();
-                                intent.setClass(LoginActivity.this, LoginUberActivity.class);
-                                startActivity(intent);
-                                Log.i("success", response.toString());
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.i("fail", error.toString());
-                    }
-                });
-        VolleyUtil.getmQueue().add(customRequest);
+        Intent intent = new Intent();
+        intent.setClass(LoginActivity.this, LoginUberActivity.class);
+        startActivity(intent);
+//        String name = name_text.getText().toString();
+//        String password = password_text.getText().toString();
+//        name = "test1";
+//        password = "12345";
+//        CustomRequest customRequest = new CustomRequest(Constant.LOGIN + "?username=" + name + "&password=" + password, null, this,
+//                new Response.Listener<JSONObject>() {
+//                    @Override
+//                    public void onResponse(JSONObject response) {
+//                        try {
+//                            Log.i("data", response.toString());
+//                            if (response.getInt("status") == 0) {
+//                                Intent intent = new Intent();
+//                                intent.setClass(LoginActivity.this, LoginUberActivity.class);
+//                                startActivity(intent);
+//                                Log.i("success", response.toString());
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                },
+//                new Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        Log.i("fail", error.toString());
+//                    }
+//                });
+//        VolleyUtil.getmQueue().add(customRequest);
     }
 }
