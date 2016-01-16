@@ -20,3 +20,11 @@ class AskToRecommend(APIView):
 		user_token = request.query_params["user_token"]
 
 		return Response({"status":1, "info":"推荐成功", "data":""})
+
+
+
+class getPlayList(APIView):
+	def get(self, request, format=None):
+		playlist=[]
+		playlist.append("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a")
+		return Response({"status":1, "info":playlist, "data":""})
