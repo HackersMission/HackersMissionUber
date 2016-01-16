@@ -20,6 +20,7 @@ public class Constant {
     public static final String REGISTER = BASE_URL + "account/register/";
     public static final String UBER_REDIRECT_URL = "https://localhost";
     public static final String ADD_TOKEN = BASE_URL + "account/addtoken/";
+    public static final String PLAYLIST = BASE_URL + "recommend/getplaylist/";
 
 
     public static final int CONTROL_TYPE_TOGGLE = 7001;
