@@ -58,10 +58,30 @@ class Register(APIView):
 # 		except:
 # 			return Response({"status":1, "info":"该用户已注册", "data":""})
 
+class CallBack(APIView):
+	def get(self, request, format=None):
+		# user = User.objects.all()
+		# token = AccountToken.objects.all()
+		# return Response({"status":1, "info":len(token), "data":""})
+		try:
+			code = request.query_params["code"]
+			print code
+			return Response({"status":0, "info":code, "data":""})
+		except:
+			print "wrong"
+			return Response({"status":1, "info":"wrong", "data":""})
+
 
 class Test(APIView):
 	def get(self, request, format=None):
 		# user = User.objects.all()
-		token = AccountToken.objects.all()
-		return Response({"status":1, "info":len(token), "data":""})
+		# token = AccountToken.objects.all()
+		# return Response({"status":1, "info":len(token), "data":""})
+		try:
+			code = request.query_params["code"]
+			print code
+			return Response({"status":0, "info":code, "data":""})
+		except:
+			print "wrong"
+			return Response({"status":1, "info":"wrong", "data":""})
 			
