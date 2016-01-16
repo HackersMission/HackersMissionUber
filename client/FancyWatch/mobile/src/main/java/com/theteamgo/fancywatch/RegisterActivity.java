@@ -18,13 +18,13 @@ import org.json.JSONObject;
 /**
  * Created by houfang on 16/1/16.
  */
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
     private EditText name_text, password_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.register);
         name_text = (EditText) findViewById(R.id.nickNameEditText);
         password_text = (EditText) findViewById(R.id.password_EditText);
         VolleyUtil volleyUtil = new VolleyUtil(getApplication());
@@ -34,10 +34,10 @@ public class LoginActivity extends AppCompatActivity {
     public void click_to_login(View v) {
         String name = name_text.getText().toString();
         String password = password_text.getText().toString();
-        name = "test1";
-        password = "12345";
+        //name = "test1";
+        //password = "12345";
         final String finalName = name;
-        CustomRequest customRequest = new CustomRequest(Constant.LOGIN + "?username=" + name + "&password=" + password, null, this,
+        CustomRequest customRequest = new CustomRequest(Constant.REGISTER + "?username=" + name + "&password=" + password, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -48,9 +48,9 @@ public class LoginActivity extends AppCompatActivity {
                                 Bundle bundle = new Bundle();
                                 bundle.putString("username", finalName);
                                 intent.putExtras(bundle);
-                                intent.setClass(LoginActivity.this, LoginUberActivity.class);
+                                intent.setClass(RegisterActivity.this, LoginUberActivity.class);
                                 startActivity(intent);
-                                Log.i("success", response.toString());
+                                finish();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -64,11 +64,5 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
         VolleyUtil.getmQueue().add(customRequest);
-    }
-
-    public void click_to_register(View v) {
-        Intent intent = new Intent();
-        intent.setClass(this, RegisterActivity.class);
-        startActivity(intent);
     }
 }

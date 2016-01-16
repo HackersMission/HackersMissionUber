@@ -9,4 +9,6 @@ urlpatterns = [
     url(r"^register/$", views.Register.as_view(), name="account_register"),
     url(r"^login/$", views.Login.as_view(), name="account_login"),
     url(r"^test/$", views.Test.as_view(), name="test"),
+    url(r"^callback/$", views.CallBack.as_view(), name="test"),
+    url(r"^addtoken/$", views.AddToken.as_view(), name="test"),
 ]

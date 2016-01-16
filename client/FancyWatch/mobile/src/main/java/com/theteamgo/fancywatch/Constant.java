@@ -12,9 +12,11 @@ public class Constant {
     public static final String UBER_SCOPE = "request profile history history_lite request_receipt";
 
     public static final String UBER_AUTH = "https://login.uber.com/oauth/v2/authorize";
+    public static final String UBER_TOKEN = "https://login.uber.com/oauth/v2/token";
 
-
-    public static final String BASE_URL = "http://192.168.10.222:8000/api/";
+    public static final String BASE_URL = "https://tripfm.localtunnel.me/api/";
     public static final String LOGIN = BASE_URL + "account/login/";
-    public static final String UBER_REDIRECT_URL = BASE_URL + "account/test/";
+    public static final String REGISTER = BASE_URL + "account/register/";
+    public static final String UBER_REDIRECT_URL = BASE_URL + "account/callback/";
+    public static final String ADD_TOKEN = BASE_URL + "account/addtoken/";
 }
