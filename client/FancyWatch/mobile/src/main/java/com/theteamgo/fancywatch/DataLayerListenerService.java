@@ -12,6 +12,8 @@ import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.Wearable;
 import com.mobvoi.android.wearable.WearableListenerService;
 
+import java.util.Date;
+
 /**
  * Listens to DataItems and Messages from the local node.
  */
@@ -21,6 +23,7 @@ public class DataLayerListenerService extends WearableListenerService {
     public static final int CONTROL_TYPE_TOGGLE = 7001;
     public static final int CONTROL_TYEP_VOLUME_UP = 7002;
     public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+    public long timestamp = 0;
 
     MobvoiApiClient mMobvoiApiClient;
 
@@ -49,17 +52,20 @@ public class DataLayerListenerService extends WearableListenerService {
         //    startActivity(startIntent);
         //}
 
-
+        long pre = timestamp;
+        timestamp = new Date().getTime();
+        if(timestamp - pre < 1000)
+            return;
         try {
             int type = Integer.valueOf(messageEvent.getPath());
-            if (type == CONTROL_TYPE_TOGGLE)
-                ((MyApplication)getApplication()).getMainActivity().togglePlayer();
+            if (type == CONTROL_TYPE_TOGGLE) {
+                if(((MyApplication) getApplication()).getMainActivity() != null)
+                    ((MyApplication) getApplication()).getMainActivity().togglePlayer();
+            }
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
     @Override

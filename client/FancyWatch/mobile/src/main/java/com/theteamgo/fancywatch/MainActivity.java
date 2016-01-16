@@ -107,23 +107,29 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     public void togglePlayer() {
-        if (mpv.isRotating()) {
-            mpv.stop();
-            mediaPlayer.pause();
-        } else {
-            mpv.start();
-//                    player = ExoPlayer.Factory.newInstance(4);
-//                    Uri uri = Uri.parse("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
-//                    Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
-//                    DataSource dataSource = new DefaultUriDataSource(context, null, userAgent);
-//                    ExtractorSampleSource sampleSource = new ExtractorSampleSource(
-//                            uri, dataSource, allocator, BUFFER_SEGMENT_COUNT * BUFFER_SEGMENT_SIZE);
-//                    MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
-//                    player.prepare(null, audioRenderer);
-//                    player.setPlayWhenReady(true);
-//                    player.release(); // Don’t forget to release when done!
-            mediaPlayer.start();
-        }
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mediaPlayer.isPlaying()) {
+                    try {
+                        mpv.stop();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    mediaPlayer.pause();
+                } else {
+                    try {
+                        mpv.start();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    mediaPlayer.start();
+                }
+            }
+        });
+
+
     }
 
 
