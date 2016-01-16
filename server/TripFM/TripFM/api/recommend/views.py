@@ -8,12 +8,21 @@ from TripFM.api.account.models import AccountToken
 from TripFM.api.ubersandbox.views import get_request_for_recommend
 from django.contrib import auth
 from django.contrib.auth.models import User
+from bosonnlp import BosonNLP
 
 import urllib2
 import urllib
 import httplib 
 import json
 
+
+def getKeyWords(command):
+	nlp = BosonNLP("IrtCRUKX.4360.giOuq49VR3V-")
+	r = nlp.extract_keywords(command, top_k=3)
+	l = []
+	for k,v in r:
+		l.append(v)
+	return l
 
 class AskToRecommend(APIView):
 	def get(self, request, format=None):

@@ -12,7 +12,8 @@
         android:layout_centerHorizontal="true"
         android:textColor="@android:color/white"
         android:textSize="22sp"
-        android:text="Rock With You"
+        android:maxLines="1"
+        android:maxWidth="300dp"
         android:layout_marginTop="50dp"/>
 
 
@@ -22,8 +23,9 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:textColor="#80FFFFFF"
+        android:maxLines="1"
+        android:maxWidth="200dp"
         android:textSize="15sp"
-        android:text="Michael Jackson"
         android:layout_marginTop="10dp"
         android:layout_below="@+id/textViewSong"/>
 
@@ -68,5 +70,16 @@
         android:layout_below="@+id/mpv"
         android:layout_alignLeft="@+id/mpv"
         android:layout_marginTop="50dp"/>
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_alignParentBottom="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:text="未打车"
+        android:layout_marginBottom="60dp"/>
 
 </RelativeLayout>
