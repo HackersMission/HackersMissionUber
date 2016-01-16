@@ -1,6 +1,9 @@
 package com.theteamgo.fancywatch;
 
+import android.content.IntentSender;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +21,7 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.api.ResultCallback;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
+import com.mobvoi.android.common.api.ResultCallback;
 import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
@@ -33,6 +37,9 @@ import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
         OnConnectionFailedListener{
@@ -40,8 +47,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private static final String TAG = "MainActivity";
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
-    private boolean mCameraSupported = false;
-
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +65,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                         .setAction("Action", null).show();
             }
         });
-        //LOGD(TAG, "created");
         Log.d(TAG, "created");
+        mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
@@ -141,6 +147,23 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.d(TAG, "connection failed");
+        if (mResolvingError) {
+            // Already attempting to resolve an error.
+            return;
+        } else if (connectionResult.hasResolution()) {
+            try {
+                mResolvingError = true;
+                connectionResult.startResolutionForResult(this, 1000);
+            } catch (IntentSender.SendIntentException e) {
+                // There was an error with the resolution intent. Try again.
+                mMobvoiApiClient.connect();
+            }
+        } else {
+            mResolvingError = false;
+            Wearable.DataApi.removeListener(mMobvoiApiClient, this);
+            Wearable.MessageApi.removeListener(mMobvoiApiClient, this);
+            Wearable.NodeApi.removeListener(mMobvoiApiClient, this);
+        }
     }
 
     @Override
@@ -163,7 +186,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         } else {
             s = "unknown gesture";
         }
-        Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+        final String toastStr = s;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "onGestureDetected " + toastStr, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -177,9 +206,55 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
 
+    private Collection<String> getNodes() {
+        HashSet<String> results = new HashSet<String>();
+        NodeApi.GetConnectedNodesResult nodes =
+                Wearable.NodeApi.getConnectedNodes(mMobvoiApiClient).await();
+
+        for (Node node : nodes.getNodes()) {
+            results.add(node.getId());
+        }
+
+        return results;
+    }
+
+    private void sendStartActivityMessage(String node) {
+        Wearable.MessageApi.sendMessage(
+                mMobvoiApiClient, node, "test", new byte[0]).setResultCallback(
+                new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        if (!sendMessageResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Failed to send message with status code: "
+                                    + sendMessageResult.getStatus().getStatusCode());
+                        }
+                    }
+                }
+        );
+    }
+
+    private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... args) {
+            Collection<String> nodes = getNodes();
+            for (String node : nodes) {
+                sendStartActivityMessage(node);
+            }
+            return null;
+        }
+    }
+
     private static void LOGD(final String tag, String message) {
         if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, message);
         }
+    }
+
+    public void test_send(View v) {
+
+        new StartWearableActivityTask().execute();
+
+        Log.v(TAG, "test send");
     }
 }
