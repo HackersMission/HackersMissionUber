@@ -3,19 +3,13 @@ package com.theteamgo.fancywatch;
 import static com.theteamgo.fancywatch.DataLayerListenerService.LOGD;
 
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,30 +19,26 @@ import com.mobvoi.android.common.api.MobvoiApiClient;
 import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
 import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 import com.mobvoi.android.common.api.ResultCallback;
-import com.mobvoi.android.common.data.FreezableUtils;
 import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.gesture.MobvoiGestureClient;
-import com.mobvoi.android.wearable.Asset;
 import com.mobvoi.android.wearable.DataApi;
-import com.mobvoi.android.wearable.DataEvent;
 import com.mobvoi.android.wearable.DataEventBuffer;
-import com.mobvoi.android.wearable.DataMapItem;
 import com.mobvoi.android.wearable.MessageApi;
 import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
-
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 public class MainActivity extends Activity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
     private static final String TAG = "MainActivity";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
 
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
@@ -160,6 +150,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
+                            new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
@@ -167,7 +158,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         } else {
                             s = "unknown gesture";
                         }
-                        new StartGestureMessageTask().execute(type);
+                        //new StartGestureMessageTask().execute(type);
                         Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -222,6 +213,36 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
     public void onPeerDisconnected(Node node) {
         //generateEvent("Node Disconnected", node.getId());
     }
+
+    public boolean onLongPressSidePanel(MotionEvent e) {
+        Log.d(TAG, "onLongPressSidePanel");
+        return true;
+    }
+
+    public boolean onScrollSidePanel(MotionEvent e1, MotionEvent e2, float distanceX,
+                                     float distanceY) {
+        Log.d(TAG, "onScrollSidePanel " + distanceY);
+        return true;
+    }
+
+    public boolean onFlingSidePanel(MotionEvent e1, MotionEvent e2, float velocityX,
+                                    float velocityY) {
+        Log.d(TAG, "onFlingSidePanel " + velocityY);
+        return true;
+    }
+
+    public boolean onDoubleTapSidePanel(MotionEvent e) {
+        Log.d(TAG, "onDoubleTapSidePanel");
+        return true;
+    }
+
+    public boolean onSingleTapSidePanel(MotionEvent e) {
+        Log.d(TAG, "onSingleTapSidePanel");
+        //new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
+        return true;
+    }
+
+
 
     public void test_send(View v) {
         new StartWearableActivityTask().execute();
