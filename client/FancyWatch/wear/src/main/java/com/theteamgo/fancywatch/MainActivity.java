@@ -29,28 +29,28 @@ import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
-
 import java.io.UnsupportedEncodingException;
+import com.theteamgo.fancywatch.common.Constant;
+
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import co.mobiwise.playerview.MusicPlayerView;
 
 public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
     private static final String TAG = "MainActivity";
-    public static final int CONTROL_TYPE_TOGGLE = 7001;
-    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
-    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
-    public static final int CONTROL_WORD_COMMAND = 8000;
-
 
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
-    private ListView mDataItemList;
-    private TextView mIntroText;
     private View mLayout;
+    private TextView audioTitle;
     private Handler mHandler;
+    MusicPlayerView mpv;
 
     @Override
     public void onCreate(Bundle b) {
@@ -69,13 +69,38 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
             }
         });
 
+        audioTitle = (TextView)findViewById(R.id.title);
 
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        mpv = (MusicPlayerView) findViewById(R.id.mpv);
+
+        mpv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_TOGGLE);
+
+                if (mpv.isRotating())
+                    mpv.stop();
+                else
+                    mpv.start();
+            }
+        });
+
+        ((MyApplication)getApplication()).setMainActivity(this);
+        Timer mTimer = new Timer();
+        TimerTask mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
+            }
+        };
+        mTimer.schedule(mTimerTask, 2000, 2000);
     }
+
 
     @Override
     public void onRecognitionSuccess(String text) {
@@ -84,11 +109,18 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
         new StartWordMessageTask().execute(text);
     }
 
-
     @Override
     public void onRecognitionFailed() {
 //        TextView txtRslt = (TextView) findViewById(R.id.title);
 //        txtRslt.setText("onRecognitionFailed");
+    }
+    public void setAudioTitle(final String title) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                audioTitle.setText(title);
+            }
+        });
     }
 
     private Collection<String> getNodes() {
@@ -137,7 +169,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
         try {
             Log.i("FUCK", wd);
             Wearable.MessageApi.sendMessage(
-                    mMobvoiApiClient, node, ""+CONTROL_WORD_COMMAND, wd.getBytes("utf-8")).setResultCallback(
+                    mMobvoiApiClient, node, ""+Constant.CONTROL_WORD_COMMAND, wd.getBytes("utf-8")).setResultCallback(
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
@@ -209,7 +241,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
-                            new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
+                            new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_TOGGLE);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
@@ -223,6 +255,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                 });
             }
         });
+        new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
     }
 
     @Override

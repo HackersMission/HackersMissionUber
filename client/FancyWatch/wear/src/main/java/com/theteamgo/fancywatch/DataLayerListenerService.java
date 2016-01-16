@@ -13,6 +13,7 @@ import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.Wearable;
 import com.mobvoi.android.wearable.WearableListenerService;
+import com.theteamgo.fancywatch.common.Constant;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -22,15 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class DataLayerListenerService extends WearableListenerService {
 
-    private static final String TAG = "DataLayerListenerServic";
-
-    private static final String START_ACTIVITY_PATH = "/start-activity";
-    private static final String DATA_ITEM_RECEIVED_PATH = "/data-item-received";
-    public static final String COUNT_PATH = "/count";
-    public static final String IMAGE_PATH = "/image";
-    public static final String IMAGE_KEY = "photo";
-    private static final String COUNT_KEY = "count";
-    private static final int MAX_LOG_TAG_LENGTH = 23;
+    private static final String TAG = "WearService";
     MobvoiApiClient mMobvoiApiClient;
 
     @Override
@@ -53,10 +46,23 @@ public class DataLayerListenerService extends WearableListenerService {
 
         // Check to see if the message is to start an activity
         //if (messageEvent.getPath().equals(START_ACTIVITY_PATH)) {
-            Intent startIntent = new Intent(this, MainActivity.class);
-            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(startIntent);
+        //    Intent startIntent = new Intent(this, MainActivity.class);
+        //    startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        //    startActivity(startIntent);
         //}
+        try {
+            int type = Integer.valueOf(messageEvent.getPath());
+            if (type == Constant.CONTROL_TYPE_INFO) {
+                if(((MyApplication) getApplication()).getMainActivity() != null) {
+                    String str = new String(messageEvent.getData(), "UTF-8");
+                    ((MyApplication) getApplication()).getMainActivity().setAudioTitle(str);
+                }
+                Log.d(TAG, "get audio info");
+            }
+            //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
