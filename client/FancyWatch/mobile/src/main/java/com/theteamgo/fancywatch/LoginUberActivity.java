@@ -1,11 +1,13 @@
 package com.theteamgo.fancywatch;
 
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -21,28 +23,33 @@ import java.util.HashMap;
 /**
  * Created by houfang on 16/1/16.
  */
-public class LoginUber extends AppCompatActivity {
+public class LoginUberActivity extends AppCompatActivity {
     private String TAG = "test";
     private WebView webView;
 
-    public void redirectToUberLogin() {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.uber_login);
+        webView = (WebView) findViewById(R.id.webview);
         webView.getSettings().setJavaScriptEnabled(true);
-
         webView.setWebChromeClient(new WebChromeClient() {
             public void onProgressChanged(WebView view, int progress) {
-                LoginUber.this.setProgress(progress * 1000);
+                LoginUberActivity.this.setProgress(progress * 1000);
             }
         });
 
         webView.setWebViewClient(new UberWebViewClient());
-
         webView.loadUrl(buildUrl());
     }
 
     private String buildUrl() {
         Uri.Builder uriBuilder = Uri.parse(Constant.UBER_AUTH).buildUpon();
-        uriBuilder.appendQueryParameter("response_type", "code");
+        uriBuilder.appendQueryParameter("response_type", Constant.UBER_RESPONSE_TYPE);
         uriBuilder.appendQueryParameter("client_id", Constant.UBER_CLIENT_ID);
+        uriBuilder.appendQueryParameter("scope", Constant.UBER_SCOPE);
+        uriBuilder.appendQueryParameter("redirect_uri", null);
+        Log.i("url", uriBuilder.build().toString().replace("%20", "+"));
         return uriBuilder.build().toString().replace("%20", "+");
     }
 
@@ -58,7 +65,7 @@ public class LoginUber extends AppCompatActivity {
             if (checkRedirect(failingUrl)) {
                 return;
             }
-            Toast.makeText(LoginUber.this, "Error " + description, Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginUberActivity.this, "Error " + description, Toast.LENGTH_SHORT).show();
         }
     }
 
