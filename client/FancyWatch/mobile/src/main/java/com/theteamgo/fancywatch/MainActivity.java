@@ -133,8 +133,14 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         });
     }
 
-    public void changeStatus(String text) {
-        status.setText(text);
+    public void changeStatus(final String text) {
+//        status.setText(text);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                status.setText(text);
+            }
+        });
     }
 
     public void sendAudioInfo() {
