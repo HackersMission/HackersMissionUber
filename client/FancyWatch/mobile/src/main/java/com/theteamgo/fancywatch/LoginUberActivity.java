@@ -48,7 +48,7 @@ public class LoginUberActivity extends AppCompatActivity {
         uriBuilder.appendQueryParameter("response_type", Constant.UBER_RESPONSE_TYPE);
         uriBuilder.appendQueryParameter("client_id", Constant.UBER_CLIENT_ID);
         uriBuilder.appendQueryParameter("scope", Constant.UBER_SCOPE);
-        uriBuilder.appendQueryParameter("redirect_uri", null);
+        uriBuilder.appendQueryParameter("redirect_uri", Constant.UBER_REDIRECT_URL);
         Log.i("url", uriBuilder.build().toString().replace("%20", "+"));
         return uriBuilder.build().toString().replace("%20", "+");
     }
@@ -70,34 +70,36 @@ public class LoginUberActivity extends AppCompatActivity {
     }
 
     private boolean checkRedirect(String url) {
-        if (url.startsWith("REDIRECT_URL")) {
+        //if (url.startsWith("REDIRECT_URL")) {
+        Log.i("redirect", url);
             Uri uri = Uri.parse(url);
             String authorization_code = uri.getQueryParameter("code");
+        Log.i("token", authorization_code);
             HashMap params = new HashMap<String, String>();
             params.put("client_secret", Constant.UBER_SECRET);
             params.put("client_id", Constant.UBER_CLIENT_ID);
             params.put("grant_type", Constant.UBER_GRANT_TYPE);
-            params.put("redirect_uri", "YOUR_REDIRECT_URI");
+            params.put("redirect_uri", Constant.UBER_REDIRECT_URL);
             params.put("code", authorization_code);
-            CustomRequest customRequest = new CustomRequest(Request.Method.POST, Constant.UBER_AUTH, params, this,
+            CustomRequest customRequest = new CustomRequest(Request.Method.POST, Constant.UBER_TOKEN, params, this,
                     new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
-                            Log.i(TAG, response.toString());
+                            Log.i("seccuse", response.toString());
                         }
                     },
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Log.i(TAG, error.toString());
+                            Log.i("fail", error.toString());
                         }
                     });
 
             VolleyUtil.getmQueue().add(customRequest);
             return true;
-        }
+        /*}
         else {
             return false;
-        }
+        }*/
     }
 }
