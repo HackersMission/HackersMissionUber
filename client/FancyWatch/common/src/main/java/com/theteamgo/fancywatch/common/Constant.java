@@ -1,4 +1,4 @@
-package com.theteamgo.fancywatch;
+package com.theteamgo.fancywatch.common;
 
 /**
  * Created by houfang on 16/1/16.
