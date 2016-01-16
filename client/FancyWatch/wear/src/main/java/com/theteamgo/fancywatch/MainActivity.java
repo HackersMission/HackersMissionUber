@@ -21,6 +21,7 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 import com.mobvoi.android.common.api.ResultCallback;
 import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.gesture.MobvoiGestureClient;
+import com.mobvoi.android.speech.SpeechRecognitionApi;
 import com.mobvoi.android.wearable.DataApi;
 import com.mobvoi.android.wearable.DataEventBuffer;
 import com.mobvoi.android.wearable.MessageApi;
@@ -28,10 +29,12 @@ import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
+
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
 
-public class MainActivity extends Activity implements ConnectionCallbacks,
+public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
@@ -39,6 +42,8 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
     public static final int CONTROL_TYPE_TOGGLE = 7001;
     public static final int CONTROL_TYEP_VOLUME_UP = 7002;
     public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+    public static final int CONTROL_WORD_COMMAND = 8000;
+
 
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
@@ -57,6 +62,12 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         //mDataItemList = (ListView) findViewById(R.id.dataItem_list);
         //mIntroText = (TextView) findViewById(R.id.intro);
         mLayout = findViewById(R.id.layout);
+        findViewById(R.id.speak).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startRecognition();
+            }
+        });
 
 
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
@@ -64,8 +75,20 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+    }
+
+    @Override
+    public void onRecognitionSuccess(String text) {
+        TextView txtRslt = (TextView) findViewById(R.id.title);
+        txtRslt.setText(text);
+        new StartWordMessageTask().execute(text);
+    }
 
 
+    @Override
+    public void onRecognitionFailed() {
+//        TextView txtRslt = (TextView) findViewById(R.id.title);
+//        txtRslt.setText("onRecognitionFailed");
     }
 
     private Collection<String> getNodes() {
@@ -110,6 +133,25 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         );
     }
 
+    private void sendWordMessage(String node, String wd) {
+        try {
+            Log.i("FUCK", wd);
+            Wearable.MessageApi.sendMessage(
+                    mMobvoiApiClient, node, ""+CONTROL_WORD_COMMAND, wd.getBytes("utf-8")).setResultCallback(
+                    new ResultCallback<MessageApi.SendMessageResult>() {
+                        @Override
+                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                            if (!sendMessageResult.getStatus().isSuccess()) {
+                                Log.e(TAG, "Failed to send message with status code: "
+                                        + sendMessageResult.getStatus().getStatusCode());
+                            }
+                        }
+                    }
+            );
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
 
     private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
 
@@ -130,6 +172,23 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
             Collection<String> nodes = getNodes();
             for (String node : nodes) {
                 sendGestureMessage(node, args[0]);
+            }
+            return null;
+        }
+    }
+
+    private class StartWordMessageTask extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... args) {
+            Collection<String> nodes = getNodes();
+            Log.i("FUCK2", args[0]);
+            Log.i("FUCK2", nodes.size()+"");
+
+
+            for (String node : nodes) {
+                Log.i("FUCK3", args[0]);
+                sendWordMessage(node, args[0]);
             }
             return null;
         }

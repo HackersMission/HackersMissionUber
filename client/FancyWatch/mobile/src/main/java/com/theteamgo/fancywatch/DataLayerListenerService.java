@@ -21,6 +21,7 @@ public class DataLayerListenerService extends WearableListenerService {
     public static final int CONTROL_TYPE_TOGGLE = 7001;
     public static final int CONTROL_TYEP_VOLUME_UP = 7002;
     public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+    public static final int CONTROL_WORD_COMMAND = 8000;
 
     MobvoiApiClient mMobvoiApiClient;
 
@@ -55,6 +56,11 @@ public class DataLayerListenerService extends WearableListenerService {
             if (type == CONTROL_TYPE_TOGGLE)
                 ((MyApplication)getApplication()).getMainActivity().togglePlayer();
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+            else if (type == CONTROL_WORD_COMMAND) {
+                String txt= new String(messageEvent.getData(), "utf-8");
+                Log.d("FUCK", txt);
+                ((MyApplication)getApplication()).getMainActivity().changeStatus(txt);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

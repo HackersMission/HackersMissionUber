@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.mobvoi.android.common.ConnectionResult;
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private boolean mResolvingError = false;
     private Context context;
     public MediaPlayer mediaPlayer;
+    private TextView status;
 
 
     private MusicPlayerView mpv;
@@ -78,8 +80,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         VolleyUtil volleyUtil = new VolleyUtil(this);
         ((MyApplication)getApplication()).setMainActivity(this);
 
-        context = this;
-
+        status = (TextView)findViewById(R.id.status);
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -124,6 +125,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //                    player.release(); // Don’t forget to release when done!
             mediaPlayer.start();
         }
+    }
+
+    public void changeStatus(String text) {
+        status.setText(text);
     }
 
 
