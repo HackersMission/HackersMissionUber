@@ -19,4 +19,6 @@ public class Constant {
     public static final String REGISTER = BASE_URL + "account/register/";
     public static final String UBER_REDIRECT_URL = BASE_URL + "account/callback/";
     public static final String ADD_TOKEN = BASE_URL + "account/addtoken/";
+
+    public static final String PLAYLIST = BASE_URL + "recommend/getplaylist/";
 }

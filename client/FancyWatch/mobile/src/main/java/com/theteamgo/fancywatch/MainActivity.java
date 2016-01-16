@@ -18,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
 //import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
@@ -39,13 +41,21 @@ import com.mobvoi.android.wearable.NodeApi;
 //import com.mobvoi.android.wearable.PutDataMapRequest;
 //import com.mobvoi.android.wearable.PutDataRequest;
 import com.mobvoi.android.wearable.Wearable;
+import com.theteamgo.fancywatch.utils.CustomRequest;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
 import co.mobiwise.playerview.MusicPlayerView;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
@@ -60,6 +70,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     private MusicPlayerView mpv;
 
+    private List<Song> songList = new ArrayList<>();
+    private int playIndex = 0;
 
     private Handler mHandler;
 
@@ -68,10 +80,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mpv = (MusicPlayerView) findViewById(R.id.mpv);
         setSupportActionBar(toolbar);
         context = this;
 
-        VolleyUtil volleyUtil = new VolleyUtil(this);
+
         Log.d(TAG, "created");
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
@@ -80,18 +93,89 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 .addOnConnectionFailedListener(this)
                 .build();
 
+        GetPlayList();
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+
+    }
+
+    private void playAll() {
+        if (playIndex >= songList.size()) {
+            return;
+        }
+
         mediaPlayer.reset();
         try {
-            mediaPlayer.setDataSource("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
+            mediaPlayer.setDataSource(songList.get(playIndex).mediaUrl);
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
+        mpv.setMax(songList.get(playIndex).mediaLength);
+        mpv.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (mpv.isRotating()) {
+                    mpv.stop();
+                    mediaPlayer.pause();
+                } else {
+                    mpv.start();
+                    mediaPlayer.start();
+                }
+            }
+        });
+
+        mediaPlayer.start();
+        mpv.start();
+        playIndex++;
+
+        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
+        mediaPlayer.setOnCompletionListener(
+        new MediaPlayer.OnCompletionListener()
+        {
+            // @Override
+            public void onCompletion(MediaPlayer arg0)
+            {
+                try
+                {
+                    if (playIndex >= songList.size()) {
+                        Log.i("playlist", "end");
+                        return;
+                    }
+
+                    try {
+
+                        mediaPlayer.setDataSource(songList.get(playIndex).mediaUrl);
+                        mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    playIndex++;
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    private void playOneSong(Song song) {
+
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource(song.mediaUrl);
             mediaPlayer.prepare();//prepare之后自动播放
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         mpv = (MusicPlayerView) findViewById(R.id.mpv);
-        mpv.setCoverURL("http://pic.qingting.fm/2015/0713/20150713092157685.jpg!200");
+        mpv.setCoverURL(song.mediaImageUrl);
         mpv.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 if (mpv.isRotating()) {
@@ -113,7 +197,41 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 }
             }
         });
+    }
 
+    private void GetPlayList() {
+        CustomRequest customRequest = new CustomRequest(Constant.PLAYLIST, null, this,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("playlist", response.toString());
+                        try {
+                            JSONArray listArrayJson = new JSONArray(response.getString("data"));
+                            songList.clear();
+                            for (int i = 0 ; i < listArrayJson.length() ; i++) {
+                                JSONObject songJson = listArrayJson.getJSONObject(i);
+                                Song song = new Song();
+                                song.mediaImageUrl = songJson.getString("mediaImageUrl");
+                                song.mediaLength = songJson.getInt("mediaLength");
+                                song.mediaTitle = songJson.getString("mediaTitle");
+                                song.mediaSubtitle = songJson.getString("mediaSubtitle");
+                                song.mediaUrl = songJson.getString("mediaUrl");
+                                songList.add(song);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        playAll();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        VolleyUtil.getmQueue().add(customRequest);
     }
 
     @Override
