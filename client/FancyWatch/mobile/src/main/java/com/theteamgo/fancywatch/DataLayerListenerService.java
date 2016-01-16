@@ -18,6 +18,10 @@ import com.mobvoi.android.wearable.WearableListenerService;
 public class DataLayerListenerService extends WearableListenerService {
 
     private static final String TAG = "ServiceMoblie";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+
     MobvoiApiClient mMobvoiApiClient;
 
     @Override
@@ -45,22 +49,16 @@ public class DataLayerListenerService extends WearableListenerService {
         //    startActivity(startIntent);
         //}
 
+
         try {
             int type = Integer.valueOf(messageEvent.getPath());
-            String s = "";
-            if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
-                s = "turn wrist twice";
-            } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
-                s = "turn wrist up";
-            } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
-                s = "turn wrist down";
-            } else {
-                s = "unknown gesture";
-            }
-            Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+            if (type == CONTROL_TYPE_TOGGLE)
+                ((MyApplication)getApplication()).getMainActivity().togglePlayer();
+            //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -75,8 +73,8 @@ public class DataLayerListenerService extends WearableListenerService {
     }
 
     public static void LOGD(final String tag, String message) {
-        if (Log.isLoggable(tag, Log.DEBUG)) {
+        //if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, message);
-        }
+        //}
     }
 }

@@ -52,6 +52,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
     private Context context;
@@ -67,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ((MyApplication)getApplication()).setMainActivity(this);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         context = this;
@@ -94,11 +100,17 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         mpv.setCoverURL("http://pic.qingting.fm/2015/0713/20150713092157685.jpg!200");
         mpv.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                if (mpv.isRotating()) {
-                    mpv.stop();
-                    mediaPlayer.pause();
-                } else {
-                    mpv.start();
+                togglePlayer();
+            }
+        });
+    }
+
+    public void togglePlayer() {
+        if (mpv.isRotating()) {
+            mpv.stop();
+            mediaPlayer.pause();
+        } else {
+            mpv.start();
 //                    player = ExoPlayer.Factory.newInstance(4);
 //                    Uri uri = Uri.parse("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
 //                    Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
@@ -109,12 +121,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //                    player.prepare(null, audioRenderer);
 //                    player.setPlayWhenReady(true);
 //                    player.release(); // Don’t forget to release when done!
-                    mediaPlayer.start();
-                }
-            }
-        });
-
+            mediaPlayer.start();
+        }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -218,6 +228,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         Log.d(TAG, "onMessageReceived() A message from watch was received:" + messageEvent
                 .getRequestId() + " " + messageEvent.getPath());
         int type = Integer.valueOf(messageEvent.getPath());
+        if(type == CONTROL_TYPE_TOGGLE) {
+            togglePlayer();
+        }
+        /*
         String s = "";
         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
             s = "turn wrist twice";
@@ -235,6 +249,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 Toast.makeText(MainActivity.this, "onGestureDetected " + toastStr, Toast.LENGTH_SHORT).show();
             }
         });
+        */
     }
 
     @Override
