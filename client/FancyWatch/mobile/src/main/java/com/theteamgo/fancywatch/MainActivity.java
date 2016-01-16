@@ -31,6 +31,7 @@ import com.mobvoi.android.wearable.NodeApi;
 //import com.mobvoi.android.wearable.PutDataMapRequest;
 //import com.mobvoi.android.wearable.PutDataRequest;
 import com.mobvoi.android.wearable.Wearable;
+import com.theteamgo.fancywatch.utils.VolleyUtil;
 
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        VolleyUtil volleyUtil = new VolleyUtil(this);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
