@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout"
+    android:background="#25272d"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView
+        android:id="@+id/title"
+        android:layout_marginTop="15dp"
+        android:textColor="@android:color/white"
+        android:text="罗辑思维时间的是打飞机哦撒地方就哦啊是否"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:layout_width="100dp"
+        android:maxLines="2"
+        android:layout_height="wrap_content" />
+
+    <co.mobiwise.playerview.MusicPlayerView
+        android:id="@+id/mpv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        app:textSize = "14sp"
+        app:textColor = "#25272d"
+        app:buttonColor = "#eb5902"
+        app:progressLoadedColor = "#db430e"/>
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/mic"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5dp"/>
+
+</RelativeLayout>

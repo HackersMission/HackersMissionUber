@@ -1,10 +1,16 @@
 package com.theteamgo.fancywatch;
 
+import static com.theteamgo.fancywatch.DataLayerListenerService.LOGD;
+
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.wearable.view.WatchViewStub;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,21 +18,16 @@ import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
 import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
 import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
-//import com.mobvoi.android.common.data.FreezableUtils;
-//import com.mobvoi.android.wearable.Asset;
 import com.mobvoi.android.common.api.ResultCallback;
 import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.gesture.MobvoiGestureClient;
 import com.mobvoi.android.wearable.DataApi;
-//import com.mobvoi.android.wearable.DataEvent;
 import com.mobvoi.android.wearable.DataEventBuffer;
-//import com.mobvoi.android.wearable.DataMapItem;
 import com.mobvoi.android.wearable.MessageApi;
 import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
-
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -34,26 +35,29 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
-    public static final String START_ACTIVITY_PATH = "/start/MainActivity";
-    private TextView mTextView;
-    private Handler mHandler;
-    private String mNode;
-    private static final String TAG = "WearMainActivity";
+    private static final String TAG = "MainActivity";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
+    private ListView mDataItemList;
+    private TextView mIntroText;
+    private View mLayout;
+    private Handler mHandler;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        final WatchViewStub stub = (WatchViewStub) findViewById(R.id.watch_view_stub);
-        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
-            @Override
-            public void onLayoutInflated(WatchViewStub stub) {
-                mTextView = (TextView) stub.findViewById(R.id.text);
-            }
-        });
+    public void onCreate(Bundle b) {
+        super.onCreate(b);
         mHandler = new Handler();
+        LOGD(TAG, "onCreate");
+        setContentView(R.layout.main_activity);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //mDataItemList = (ListView) findViewById(R.id.dataItem_list);
+        //mIntroText = (TextView) findViewById(R.id.intro);
+        mLayout = findViewById(R.id.layout);
+
 
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -61,26 +65,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                 .addOnConnectionFailedListener(this)
                 .build();
 
-    }
 
-
-    private void sendGestureMessage(int type) {
-
-        Collection<String> nodes = getNodes();
-        for (String node : nodes) {
-            Wearable.MessageApi.sendMessage(
-                    mMobvoiApiClient, node, type+"", new byte[0]).setResultCallback(
-                    new ResultCallback<MessageApi.SendMessageResult>() {
-                        @Override
-                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            if (!sendMessageResult.getStatus().isSuccess()) {
-                                Log.e(TAG, "Failed to send message with status code: "
-                                        + sendMessageResult.getStatus().getStatusCode());
-                            }
-                        }
-                    }
-            );
-        }
     }
 
     private Collection<String> getNodes() {
@@ -91,16 +76,68 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         for (Node node : nodes.getNodes()) {
             results.add(node.getId());
         }
+
         return results;
+    }
+
+    private void sendStartActivityMessage(String node) {
+        Wearable.MessageApi.sendMessage(
+                mMobvoiApiClient, node, "test", new byte[0]).setResultCallback(
+                new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        if (!sendMessageResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Failed to send message with status code: "
+                                    + sendMessageResult.getStatus().getStatusCode());
+                        }
+                    }
+                }
+        );
+    }
+
+    private void sendGestureMessage(String node, int type) {
+        Wearable.MessageApi.sendMessage(
+                mMobvoiApiClient, node, ""+type, new byte[0]).setResultCallback(
+                new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        if (!sendMessageResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Failed to send message with status code: "
+                                    + sendMessageResult.getStatus().getStatusCode());
+                        }
+                    }
+                }
+        );
+    }
+
+
+    private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... args) {
+            Collection<String> nodes = getNodes();
+            for (String node : nodes) {
+                sendStartActivityMessage(node);
+            }
+            return null;
+        }
+    }
+
+    private class StartGestureMessageTask extends AsyncTask<Integer, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Integer... args) {
+            Collection<String> nodes = getNodes();
+            for (String node : nodes) {
+                sendGestureMessage(node, args[0]);
+            }
+            return null;
+        }
     }
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "on resume");
         super.onResume();
-        Wearable.DataApi.addListener(mMobvoiApiClient, this);
-        Wearable.MessageApi.addListener(mMobvoiApiClient, this);
-        Wearable.NodeApi.addListener(mMobvoiApiClient, this);
         mMobvoiApiClient.connect();
         mMobvoiGestureClient = MobvoiGestureClient.getInstance(GestureType.GROUP_TURN_WRIST);
         mMobvoiGestureClient.register(MainActivity.this, new MobvoiGestureClient.IGestureDetectedCallback() {
@@ -113,6 +150,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
+                            new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
@@ -120,7 +158,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         } else {
                             s = "unknown gesture";
                         }
-                        sendGestureMessage(type);
+                        //new StartGestureMessageTask().execute(type);
                         Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -135,51 +173,79 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         Wearable.MessageApi.removeListener(mMobvoiApiClient, this);
         Wearable.NodeApi.removeListener(mMobvoiApiClient, this);
         mMobvoiApiClient.disconnect();
-        mMobvoiGestureClient.unregister(this);
-    }
-
-    // ticwatch API
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        Log.d(TAG, "connected");
-
     }
 
     @Override
-    public void onConnectionSuspended(int i) {
-        Log.d(TAG, "connection suspended");
+    public void onConnected(Bundle connectionHint) {
+        Wearable.DataApi.addListener(mMobvoiApiClient, this);
+        Wearable.MessageApi.addListener(mMobvoiApiClient, this);
+        Wearable.NodeApi.addListener(mMobvoiApiClient, this);
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.e(TAG, "onConnectionFailed(): Failed to connect, with result: " + connectionResult);
+    public void onConnectionSuspended(int cause) {
     }
 
     @Override
-    public void onDataChanged(DataEventBuffer dataEventBuffer) {
-
+    public void onConnectionFailed(ConnectionResult result) {
+        Log.e(TAG, "onConnectionFailed(): Failed to connect, with result: " + result);
     }
 
+
     @Override
-    public void onMessageReceived(MessageEvent messageEvent) {
-        Log.d(TAG, "onMessageReceived: " + messageEvent);
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        LOGD(TAG, "onDataChanged(): " + dataEvents);
+    }
+
+
+    @Override
+    public void onMessageReceived(MessageEvent event) {
+        LOGD(TAG, "onMessageReceived: " + event);
+        Toast.makeText(getApplicationContext(), "message", Toast.LENGTH_SHORT);
     }
 
     @Override
     public void onPeerConnected(Node node) {
-        mNode = node.getId();
-        Log.d(TAG, "Node Connected" + node.getId());
+        //generateEvent("Node Connected", node.getId());
     }
 
     @Override
     public void onPeerDisconnected(Node node) {
-        Log.d(TAG, "Node Disconnected" + node.getId());
+        //generateEvent("Node Disconnected", node.getId());
     }
 
-    private static void LOGD(final String tag, String message) {
-        //if (Log.isLoggable(tag, Log.DEBUG)) {
-            Log.d(tag, message);
-        //}
+    public boolean onLongPressSidePanel(MotionEvent e) {
+        Log.d(TAG, "onLongPressSidePanel");
+        return true;
     }
+
+    public boolean onScrollSidePanel(MotionEvent e1, MotionEvent e2, float distanceX,
+                                     float distanceY) {
+        Log.d(TAG, "onScrollSidePanel " + distanceY);
+        return true;
+    }
+
+    public boolean onFlingSidePanel(MotionEvent e1, MotionEvent e2, float velocityX,
+                                    float velocityY) {
+        Log.d(TAG, "onFlingSidePanel " + velocityY);
+        return true;
+    }
+
+    public boolean onDoubleTapSidePanel(MotionEvent e) {
+        Log.d(TAG, "onDoubleTapSidePanel");
+        return true;
+    }
+
+    public boolean onSingleTapSidePanel(MotionEvent e) {
+        Log.d(TAG, "onSingleTapSidePanel");
+        //new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
+        return true;
+    }
+
+
+
+    public void test_send(View v) {
+        new StartWearableActivityTask().execute();
+    }
+
 }

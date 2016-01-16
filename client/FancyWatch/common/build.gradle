@@ -28,4 +28,5 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:22.2.0'
     compile files('libs/mobvoi-api.jar')
     compile files('libs/ormlite-android-4.49-SNAPSHOT.jar')
+    compile 'com.github.iammert:MusicPlayerView:1.0'
 }

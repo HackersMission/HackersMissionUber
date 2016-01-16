@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context=".MainActivity" tools:deviceIds="wear_round">
+    android:layout_height="match_parent" tools:context=".MainActivity" tools:deviceIds="wear_round"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
 
-    <TextView android:id="@+id/text" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true" android:text="@string/hello_round" />
+    <co.mobiwise.playerview.MusicPlayerView
+        android:id="@+id/mpv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        app:textSize = "14sp"
+        app:textColor = "#80FFFFFF"
+        app:buttonColor = "#eb5902"
+        app:progressLoadedColor = "#db430e"/>
+
 </RelativeLayout>
