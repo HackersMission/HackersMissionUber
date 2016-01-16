@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
 
     'TripFM.api.account',
+    'TripFM.api.recommend',
 )
 
 MIDDLEWARE_CLASSES = (
