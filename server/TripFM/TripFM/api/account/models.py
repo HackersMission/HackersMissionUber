@@ -5,4 +5,5 @@ from django.contrib.auth.models import User
 
 class AccountToken(models.Model):
 	user = models.ForeignKey(User)
-	token = models.CharField(max_length=50)
+	access_token = models.CharField(max_length=50)
+	refresh_token = models.CharField(max_length=50)
