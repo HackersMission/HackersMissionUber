@@ -60,7 +60,10 @@ class AddToken(APIView):
 			token.user=user
 			token.access_token=access_token
 			token.refresh_token=refresh_token
-			token.save
+			token.token_type=token_type
+			token.last_authenticated=last_authenticated
+			token.expires_in=expires_in
+			token.save()
 			return Response({"status":0, "info":"token更新成功", "data":""})
 		except:
 			return Response({"status":1, "info":"该用户未注册", "data":""})
