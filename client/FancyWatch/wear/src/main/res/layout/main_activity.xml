@@ -9,7 +9,6 @@
         android:id="@+id/title"
         android:layout_marginTop="15dp"
         android:textColor="@android:color/white"
-        android:text="罗辑思维时间的是打飞机哦撒地方就哦啊是否"
         android:layout_centerHorizontal="true"
         android:gravity="center"
         android:layout_width="100dp"

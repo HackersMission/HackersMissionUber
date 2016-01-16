@@ -11,6 +11,7 @@ import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.Wearable;
 import com.mobvoi.android.wearable.WearableListenerService;
+import com.theteamgo.fancywatch.common.Constant;
 
 import java.util.Date;
 
@@ -20,9 +21,6 @@ import java.util.Date;
 public class DataLayerListenerService extends WearableListenerService {
 
     private static final String TAG = "ServiceMoblie";
-    public static final int CONTROL_TYPE_TOGGLE = 7001;
-    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
-    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
     public long timestamp = 0;
 
     MobvoiApiClient mMobvoiApiClient;
@@ -58,9 +56,13 @@ public class DataLayerListenerService extends WearableListenerService {
             return;
         try {
             int type = Integer.valueOf(messageEvent.getPath());
-            if (type == CONTROL_TYPE_TOGGLE) {
+            if (type == Constant.CONTROL_TYPE_TOGGLE) {
                 if(((MyApplication) getApplication()).getMainActivity() != null)
                     ((MyApplication) getApplication()).getMainActivity().togglePlayer();
+            } else if(type == Constant.CONTROL_TYEP_REQUEST_INFO){
+                if(((MyApplication) getApplication()).getMainActivity() != null)
+                    ((MyApplication) getApplication()).getMainActivity().sendAudioInfo();
+                Log.d(TAG, "requset info");
             }
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {

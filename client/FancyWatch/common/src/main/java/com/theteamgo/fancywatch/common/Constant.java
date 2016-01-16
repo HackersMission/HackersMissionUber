@@ -1,4 +1,4 @@
-package com.theteamgo.fancywatch;
+package com.theteamgo.fancywatch.common;
 
 /**
  * Created by houfang on 16/1/16.
@@ -19,4 +19,11 @@ public class Constant {
     public static final String REGISTER = BASE_URL + "account/register/";
     public static final String UBER_REDIRECT_URL = BASE_URL + "account/callback/";
     public static final String ADD_TOKEN = BASE_URL + "account/addtoken/";
+
+
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+    public static final int CONTROL_TYEP_REQUEST_INFO = 7004;
+    public static final int CONTROL_TYPE_INFO = 7005;
 }

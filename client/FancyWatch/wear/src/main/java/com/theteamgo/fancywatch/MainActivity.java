@@ -28,24 +28,27 @@ import com.mobvoi.android.wearable.MessageEvent;
 import com.mobvoi.android.wearable.Node;
 import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
+import com.theteamgo.fancywatch.common.Constant;
+
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import co.mobiwise.playerview.MusicPlayerView;
 
 public class MainActivity extends Activity implements ConnectionCallbacks,
         OnConnectionFailedListener, DataApi.DataListener, MessageApi.MessageListener,
         NodeApi.NodeListener{
 
     private static final String TAG = "MainActivity";
-    public static final int CONTROL_TYPE_TOGGLE = 7001;
-    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
-    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
 
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
-    private ListView mDataItemList;
-    private TextView mIntroText;
     private View mLayout;
+    private TextView audioTitle;
     private Handler mHandler;
+    MusicPlayerView mpv;
 
     @Override
     public void onCreate(Bundle b) {
@@ -57,15 +60,46 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         //mDataItemList = (ListView) findViewById(R.id.dataItem_list);
         //mIntroText = (TextView) findViewById(R.id.intro);
         mLayout = findViewById(R.id.layout);
-
+        audioTitle = (TextView)findViewById(R.id.title);
 
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        mpv = (MusicPlayerView) findViewById(R.id.mpv);
 
+        mpv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_TOGGLE);
 
+                if (mpv.isRotating())
+                    mpv.stop();
+                else
+                    mpv.start();
+            }
+        });
+
+        ((MyApplication)getApplication()).setMainActivity(this);
+
+        Timer mTimer = new Timer();
+        TimerTask mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
+            }
+        };
+        mTimer.schedule(mTimerTask, 2000, 2000);
+    }
+
+    public void setAudioTitle(final String title) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                audioTitle.setText(title);
+            }
+        });
     }
 
     private Collection<String> getNodes() {
@@ -110,7 +144,6 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         );
     }
 
-
     private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -150,7 +183,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
-                            new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
+                            new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_TOGGLE);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
@@ -164,6 +197,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                 });
             }
         });
+        new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
     }
 
     @Override

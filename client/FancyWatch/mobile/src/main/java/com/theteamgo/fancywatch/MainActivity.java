@@ -3,20 +3,15 @@ package com.theteamgo.fancywatch;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
@@ -26,7 +21,6 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
 import com.mobvoi.android.common.api.ResultCallback;
-import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
 //import com.mobvoi.android.wearable.DataEvent;
@@ -39,11 +33,14 @@ import com.mobvoi.android.wearable.NodeApi;
 //import com.mobvoi.android.wearable.PutDataMapRequest;
 //import com.mobvoi.android.wearable.PutDataRequest;
 import com.mobvoi.android.wearable.Wearable;
+import com.theteamgo.fancywatch.common.Constant;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
 import java.io.IOException;
 
 import co.mobiwise.playerview.MusicPlayerView;
+
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -52,14 +49,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
-    public static final int CONTROL_TYPE_TOGGLE = 7001;
-    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
-    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
-
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
     private Context context;
     public MediaPlayer mediaPlayer;
+    public String audioTitle = "test";
 
 
     private MusicPlayerView mpv;
@@ -128,10 +122,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 }
             }
         });
-
-
     }
 
+    public void sendAudioInfo() {
+        new StartSendingAudioInfoTask().execute();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -169,6 +164,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     @Override
     public void onResume() {
         super.onResume();
+        sendAudioInfo();
     }
 
     @Override
@@ -234,10 +230,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     public void onMessageReceived(MessageEvent messageEvent) {
         Log.d(TAG, "onMessageReceived() A message from watch was received:" + messageEvent
                 .getRequestId() + " " + messageEvent.getPath());
-        int type = Integer.valueOf(messageEvent.getPath());
-        if(type == CONTROL_TYPE_TOGGLE) {
-            togglePlayer();
-        }
+        //int type = Integer.valueOf(messageEvent.getPath());
+        //if(type == Constant.CONTROL_TYPE_TOGGLE) {
+        //    togglePlayer();
+        //} else if(type == Constant.CONTROL_TYEP_REQUEST_INFO) {
+        //    new StartSendingAudioInfoTask().execute();
+        //}
         /*
         String s = "";
         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
@@ -297,6 +295,25 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         );
     }
 
+    private void sendAudioInfoMessage(String node, String msg) {
+        try {
+            Wearable.MessageApi.sendMessage(
+                    mMobvoiApiClient, node, "" + Constant.CONTROL_TYPE_INFO, msg.getBytes("UTF-8")).setResultCallback(
+                    new ResultCallback<MessageApi.SendMessageResult>() {
+                        @Override
+                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                            if (!sendMessageResult.getStatus().isSuccess()) {
+                                Log.e(TAG, "Failed to send message with status code: "
+                                        + sendMessageResult.getStatus().getStatusCode());
+                            }
+                        }
+                    }
+            );
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
     private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
 
         @Override
@@ -304,6 +321,18 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             Collection<String> nodes = getNodes();
             for (String node : nodes) {
                 sendStartActivityMessage(node);
+            }
+            return null;
+        }
+    }
+
+    private class StartSendingAudioInfoTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... args) {
+            Collection<String> nodes = getNodes();
+            for (String node : nodes) {
+                sendAudioInfoMessage(node, audioTitle);
             }
             return null;
         }
