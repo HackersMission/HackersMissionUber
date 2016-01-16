@@ -56,17 +56,23 @@ class AddToken(APIView):
 		expires_in = request.query_params["expires_in"]
 		try:
 			user=User.objects.get(username=username)
-			token = AccountToken()
-			token.user=user
-			token.access_token=access_token
-			token.refresh_token=refresh_token
-			token.token_type=token_type
-			token.last_authenticated=last_authenticated
-			token.expires_in=expires_in
-			token.save()
-			return Response({"status":0, "info":"token更新成功", "data":""})
 		except:
+			print "no user"
 			return Response({"status":1, "info":"该用户未注册", "data":""})
+		try:
+			token = AccountToken.objects.get(user=user)
+		except:
+			token = AccountToken()
+		token.user=user
+		token.access_token=access_token
+		token.refresh_token=refresh_token
+		token.token_type=token_type
+		token.last_authenticated=last_authenticated
+		token.expires_in=expires_in
+		token.save()
+		print "success"
+		return Response({"status":0, "info":"token更新成功", "data":""})
+		
 
 
 class CallBack(APIView):
@@ -86,14 +92,21 @@ class CallBack(APIView):
 
 class Test(APIView):
 	def get(self, request, format=None):
-		# user = User.objects.all()
-		# token = AccountToken.objects.all()
-		# return Response({"status":1, "info":len(token), "data":""})
-		try:
-			code = request.query_params["code"]
-			print code
-			return Response({"status":0, "info":code, "data":""})
-		except:
-			print "wrong"
-			return Response({"status":1, "info":"wrong", "data":""})
+		# user = User.objects.get(username="test1")
+		# token = AccountToken.objects.get(user=user)
+		# return Response({"status":1, "info":token.access_token, "data":""})
+		token = AccountToken.objects.all()
+		for t in token:
+			print t.user
+		# user=User.objects.all()
+		# for u in user:
+		# 	print u.username
+		return Response({"status":1, "info":len(token), "data":""})
+		# try:
+		# 	code = request.query_params["code"]
+		# 	print code
+		# 	return Response({"status":0, "info":code, "data":""})
+		# except:
+		# 	print "wrong"
+		# 	return Response({"status":1, "info":"wrong", "data":""})
 			

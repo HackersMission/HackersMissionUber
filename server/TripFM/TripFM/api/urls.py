@@ -8,4 +8,5 @@ urlpatterns = [
 
     url(r"^account/", include("TripFM.api.account.urls")),
     url(r"^recommend/", include("TripFM.api.recommend.urls")),
+    url(r"^ubersandbox/", include("TripFM.api.ubersandbox.urls")),
 ]

@@ -62,6 +62,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         OnConnectionFailedListener{
 
     private static final String TAG = "MainActivity";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
+
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
     private Context context;
@@ -82,10 +86,15 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mpv = (MusicPlayerView) findViewById(R.id.mpv);
         setSupportActionBar(toolbar);
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
         context = this;
 
+        VolleyUtil volleyUtil = new VolleyUtil(this);
+        ((MyApplication)getApplication()).setMainActivity(this);
 
-        Log.d(TAG, "created");
+        context = this;
+
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -197,41 +206,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 }
             }
         });
-    }
 
-    private void GetPlayList() {
-        CustomRequest customRequest = new CustomRequest(Constant.PLAYLIST, null, this,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.i("playlist", response.toString());
-                        try {
-                            JSONArray listArrayJson = new JSONArray(response.getString("data"));
-                            songList.clear();
-                            for (int i = 0 ; i < listArrayJson.length() ; i++) {
-                                JSONObject songJson = listArrayJson.getJSONObject(i);
-                                Song song = new Song();
-                                song.mediaImageUrl = songJson.getString("mediaImageUrl");
-                                song.mediaLength = songJson.getInt("mediaLength");
-                                song.mediaTitle = songJson.getString("mediaTitle");
-                                song.mediaSubtitle = songJson.getString("mediaSubtitle");
-                                song.mediaUrl = songJson.getString("mediaUrl");
-                                songList.add(song);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        playAll();
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-
-                    }
-                });
-        VolleyUtil.getmQueue().add(customRequest);
     }
 
     @Override
@@ -336,6 +311,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         Log.d(TAG, "onMessageReceived() A message from watch was received:" + messageEvent
                 .getRequestId() + " " + messageEvent.getPath());
         int type = Integer.valueOf(messageEvent.getPath());
+        if(type == CONTROL_TYPE_TOGGLE) {
+            togglePlayer();
+        }
+        /*
         String s = "";
         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
             s = "turn wrist twice";
@@ -353,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 Toast.makeText(MainActivity.this, "onGestureDetected " + toastStr, Toast.LENGTH_SHORT).show();
             }
         });
+        */
     }
 
     @Override

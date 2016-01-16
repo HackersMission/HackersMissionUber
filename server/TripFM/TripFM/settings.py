@@ -47,6 +47,7 @@ INSTALLED_APPS = (
 
     'TripFM.api.account',
     'TripFM.api.recommend',
+    'TripFM.api.ubersandbox',
 )
 
 MIDDLEWARE_CLASSES = (

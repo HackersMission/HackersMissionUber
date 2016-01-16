@@ -36,6 +36,9 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
         NodeApi.NodeListener{
 
     private static final String TAG = "MainActivity";
+    public static final int CONTROL_TYPE_TOGGLE = 7001;
+    public static final int CONTROL_TYEP_VOLUME_UP = 7002;
+    public static final int CONTROL_TYEP_VOLUME_DOWN = 7003;
 
     private MobvoiApiClient mMobvoiApiClient;
     private MobvoiGestureClient mMobvoiGestureClient;
@@ -147,6 +150,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
+                            new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
@@ -154,7 +158,7 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
                         } else {
                             s = "unknown gesture";
                         }
-                        new StartGestureMessageTask().execute(type);
+                        //new StartGestureMessageTask().execute(type);
                         Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -234,8 +238,11 @@ public class MainActivity extends Activity implements ConnectionCallbacks,
 
     public boolean onSingleTapSidePanel(MotionEvent e) {
         Log.d(TAG, "onSingleTapSidePanel");
+        //new StartGestureMessageTask().execute(CONTROL_TYPE_TOGGLE);
         return true;
     }
+
+
 
     public void test_send(View v) {
         new StartWearableActivityTask().execute();
