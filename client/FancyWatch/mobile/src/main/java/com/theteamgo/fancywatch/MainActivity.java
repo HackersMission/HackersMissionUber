@@ -1,6 +1,13 @@
 package com.theteamgo.fancywatch;
 
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
+import android.content.IntentSender;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +25,7 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.api.ResultCallback;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
+import com.mobvoi.android.common.api.ResultCallback;
 import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
@@ -33,6 +41,12 @@ import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
+import java.io.IOException;
+
+import co.mobiwise.playerview.MusicPlayerView;
+import java.util.Collection;
+import java.util.HashSet;
+
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
         OnConnectionFailedListener{
@@ -40,8 +54,14 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private static final String TAG = "MainActivity";
     private MobvoiApiClient mMobvoiApiClient;
     private boolean mResolvingError = false;
-    private boolean mCameraSupported = false;
+    private Context context;
+    public MediaPlayer mediaPlayer;
 
+
+    private MusicPlayerView mpv;
+
+
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,23 +69,51 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        context = this;
 
         VolleyUtil volleyUtil = new VolleyUtil(this);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-        //LOGD(TAG, "created");
         Log.d(TAG, "created");
+        mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
+            mediaPlayer.prepare();//prepare之后自动播放
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        mpv = (MusicPlayerView) findViewById(R.id.mpv);
+        mpv.setCoverURL("http://pic.qingting.fm/2015/0713/20150713092157685.jpg!200");
+        mpv.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                if (mpv.isRotating()) {
+                    mpv.stop();
+                    mediaPlayer.pause();
+                } else {
+                    mpv.start();
+//                    player = ExoPlayer.Factory.newInstance(4);
+//                    Uri uri = Uri.parse("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a");
+//                    Allocator allocator = new DefaultAllocator(BUFFER_SEGMENT_SIZE);
+//                    DataSource dataSource = new DefaultUriDataSource(context, null, userAgent);
+//                    ExtractorSampleSource sampleSource = new ExtractorSampleSource(
+//                            uri, dataSource, allocator, BUFFER_SEGMENT_COUNT * BUFFER_SEGMENT_SIZE);
+//                    MediaCodecAudioTrackRenderer audioRenderer = new MediaCodecAudioTrackRenderer(sampleSource);
+//                    player.prepare(null, audioRenderer);
+//                    player.setPlayWhenReady(true);
+//                    player.release(); // Don’t forget to release when done!
+                    mediaPlayer.start();
+                }
+            }
+        });
+
     }
 
     @Override
@@ -141,6 +189,23 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Log.d(TAG, "connection failed");
+        if (mResolvingError) {
+            // Already attempting to resolve an error.
+            return;
+        } else if (connectionResult.hasResolution()) {
+            try {
+                mResolvingError = true;
+                connectionResult.startResolutionForResult(this, 1000);
+            } catch (IntentSender.SendIntentException e) {
+                // There was an error with the resolution intent. Try again.
+                mMobvoiApiClient.connect();
+            }
+        } else {
+            mResolvingError = false;
+            Wearable.DataApi.removeListener(mMobvoiApiClient, this);
+            Wearable.MessageApi.removeListener(mMobvoiApiClient, this);
+            Wearable.NodeApi.removeListener(mMobvoiApiClient, this);
+        }
     }
 
     @Override
@@ -163,7 +228,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         } else {
             s = "unknown gesture";
         }
-        Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+        final String toastStr = s;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "onGestureDetected " + toastStr, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -177,9 +248,55 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
 
+    private Collection<String> getNodes() {
+        HashSet<String> results = new HashSet<String>();
+        NodeApi.GetConnectedNodesResult nodes =
+                Wearable.NodeApi.getConnectedNodes(mMobvoiApiClient).await();
+
+        for (Node node : nodes.getNodes()) {
+            results.add(node.getId());
+        }
+
+        return results;
+    }
+
+    private void sendStartActivityMessage(String node) {
+        Wearable.MessageApi.sendMessage(
+                mMobvoiApiClient, node, "test", new byte[0]).setResultCallback(
+                new ResultCallback<MessageApi.SendMessageResult>() {
+                    @Override
+                    public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                        if (!sendMessageResult.getStatus().isSuccess()) {
+                            Log.e(TAG, "Failed to send message with status code: "
+                                    + sendMessageResult.getStatus().getStatusCode());
+                        }
+                    }
+                }
+        );
+    }
+
+    private class StartWearableActivityTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... args) {
+            Collection<String> nodes = getNodes();
+            for (String node : nodes) {
+                sendStartActivityMessage(node);
+            }
+            return null;
+        }
+    }
+
     private static void LOGD(final String tag, String message) {
         if (Log.isLoggable(tag, Log.DEBUG)) {
             Log.d(tag, message);
         }
+    }
+
+    public void test_send(View v) {
+
+        new StartWearableActivityTask().execute();
+
+        Log.v(TAG, "test send");
     }
 }
