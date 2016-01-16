@@ -43,14 +43,15 @@ def get_request_for_recommend(username):
 		return '{"status":"no user"}'
 
 
-def get_eta_by_startpoint(loc_lati,loc_long,username):
+def get_eta_by_startpoint(loc_lati,loc_long,des_lati,des_long,username):
 	try:
 		user=User.objects.get(username=username)
 		account_token=AccountToken.objects.get(user=user)
 	except:
 		return '{"status":"no user"}'
-	request_url="https://sandbox-api.uber.com/v1/estimates/time?"
-	request_url=request_url+"start_latitude="+loc_lati+"&start_longitude="+loc_long
+	# request_url="https://sandbox-api.uber.com/v1/estimates/time?"
+	request_url="https://sandbox-api.uber.com/v1/estimates/price?"
+	request_url=request_url+"start_latitude="+loc_lati+"&start_longitude="+loc_long+"&end_latitude="+des_lati+"&end_longitude="+des_long
 	print request_url
 
 	request = urllib2.Request(request_url)
@@ -73,7 +74,7 @@ class SendRequest(APIView):
 		start_latitude=39.918353
 		start_longitude=116.464682
 		end_latitude=39.998325 
-		end_longitude=-117.320666
+		end_longitude=-116.320666
 
 		try:
 			username = request.query_params["username"]
@@ -120,7 +121,8 @@ class Test(APIView):
 		# 	# 	o.delete()
 		# 	print o.request_id
 		# return Response({"status":1, "info":len(order), "data":""})
-		print get_eta_by_startpoint('39.918353','116.464682','test1')
+		# print get_eta_by_startpoint('39.918353','116.464682','39.998325','116.320666','test1')
+		print get_eta_by_startpoint('39.9184','116.4647','39.9982','116.3208','test1')
 		return Response({"status":1, "info":"", "data":""})
 		
 

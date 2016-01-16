@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from TripFM.api.account.models import AccountToken
-from TripFM.api.ubersandbox.views import get_request_for_recommend
+from TripFM.api.ubersandbox.views import get_request_for_recommend,get_eta_by_startpoint
 from django.contrib import auth
 from django.contrib.auth.models import User
 from bosonnlp import BosonNLP
@@ -38,6 +38,7 @@ class AskToRecommend(APIView):
 		loc_lati=0
 		des_long=0
 		loc_long=0
+		duration=0
 		request_detail = json.loads(get_request_for_recommend("test1"))
 		status = request_detail["status"]
 		print request_detail
@@ -62,8 +63,11 @@ class AskToRecommend(APIView):
 			loc_lati=request_detail['location']['latitude']
 			des_long=request_detail['destination']['longitude']
 			loc_long=request_detail['location']['longitude']
-			print des_lati
-		return Response({"status":1, "info":"推荐成功", "data":""})
+		print abs(des_long)	
+		if des_lati!=0:
+			# duration=get_eta_by_startpoint(str("%.4f"%abs(loc_lati)),str("%.4f"%abs(loc_long)),str("%.4f"%abs(des_lati)),str("%.4f"%abs(des_long)),'test1')
+			duration=json.loads(get_eta_by_startpoint(str(abs(loc_lati)),str(abs(loc_long)),str(abs(des_lati)),str(abs(des_long)),'test1'))
+		return Response({"status":1, "info":"推荐成功", "data":duration['prices'][0]['duration']})
 
 
 
