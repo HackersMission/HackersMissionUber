@@ -29,15 +29,52 @@ def request_details(request_id,access_token):
 	return ret
 
 
+def get_request_for_recommend(username):
+	try:
+		user=User.objects.get(username=username)
+		account_token=AccountToken.objects.get(user=user)
+		try:
+			order = Order.objects.get(user=user)
+			data = request_details(order.request_id,account_token.access_token)
+			return data
+		except:
+			return '{"status":"no order"}'
+	except:
+		return '{"status":"no user"}'
+
+
+def get_eta_by_startpoint(loc_lati,loc_long,des_lati,des_long,username):
+	try:
+		user=User.objects.get(username=username)
+		account_token=AccountToken.objects.get(user=user)
+	except:
+		return '{"status":"no user"}'
+	# request_url="https://sandbox-api.uber.com/v1/estimates/time?"
+	request_url="https://sandbox-api.uber.com/v1/estimates/price?"
+	request_url=request_url+"start_latitude="+loc_lati+"&start_longitude="+loc_long+"&end_latitude="+des_lati+"&end_longitude="+des_long
+	print request_url
+
+	request = urllib2.Request(request_url)
+	request.add_header('Authorization', 'Bearer '+account_token.access_token)
+	request.add_header('Content-Type', 'application/json')
+
+	response = urllib2.urlopen(request)
+	ret = response.read()
+	return ret
+
+
+
+
+
 class SendRequest(APIView):
 	def get(self, request, format=None):
 		# request_url="https://sandbox-api.uber.com/v1/sandbox/products"
 		request_url="https://sandbox-api.uber.com/v1/requests"
 		# test_url="https://sandbox-api.uber.com/v1/products?latitude=37.7759792&longitude=-122.41823"
-		start_latitude=39.91571 
-		start_longitude=116.403838
-		end_latitude=39.922904
-		end_longitude=-116.326943
+		start_latitude=39.918353
+		start_longitude=116.464682
+		end_latitude=39.998325 
+		end_longitude=-116.320666
 
 		try:
 			username = request.query_params["username"]
@@ -60,7 +97,7 @@ class SendRequest(APIView):
 		response = urllib2.urlopen(request)
 		ret = response.read()
 		res_json=json.loads(ret)
-		print res_json["request_id"]
+		print res_json
 
 		try:
 			order = Order.objects.get(user=user)
@@ -77,11 +114,16 @@ class SendRequest(APIView):
 		
 class Test(APIView):
 	def get(self, request, format=None):
-		order = Order.objects.all()
-		for o in order:
-			print o.user
-			print o.request_id
-		return Response({"status":1, "info":len(order), "data":""})
+		# order = Order.objects.all()
+		# for o in order:
+		# 	print o.user
+		# 	# if o.user.username=="hou":
+		# 	# 	o.delete()
+		# 	print o.request_id
+		# return Response({"status":1, "info":len(order), "data":""})
+		# print get_eta_by_startpoint('39.918353','116.464682','39.998325','116.320666','test1')
+		print get_eta_by_startpoint('39.9184','116.4647','39.9982','116.3208','test1')
+		return Response({"status":1, "info":"", "data":""})
 		
 
 class getRequestDetail(APIView):
@@ -99,18 +141,155 @@ class getRequestDetail(APIView):
 		except:
 			return Response({"status":1, "info":"无该用户", "data":""})
 
-		data=request_details(res_json["request_id"],account_token.access_token)
-		return Response({"status":1, "info":"用户名或密码错误", "data":""})
 
-
-
-class CancelRequest(APIView):
+class acceptRequest(APIView):
 	def get(self, request, format=None):
+		username = request.query_params["username"]
+		try:
+			user=User.objects.get(username=username)
+			account_token=AccountToken.objects.get(user=user)
+		except:
+			return Response({"status":1, "info":"无该用户", "data":""})
+		try:
+			request_url="https://sandbox-api.uber.com/v1/sandbox/requests/" 
+			order = Order.objects.get(user=user)
+			request_url=request_url+order.request_id
+		except:
+			return Response({"status":1, "info":"该用户无订单", "data":""})
 
-		return Response({"status":1, "info":"用户名或密码错误", "data":""})
+		data={
+			'status': 'accepted'
+		}
+		request = urllib2.Request(request_url,json.dumps(data))
+		request.add_header('Authorization', 'Bearer '+account_token.access_token)
+		request.add_header('Content-Type', 'application/json')
+		request.get_method = lambda:"PUT"
+
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		# res_json=json.loads(ret)
+		print ret
+		return Response({"status":1, "info":"accept订单成功", "data":data})
 
 
-class FinishOrder(APIView):
+class arrivingRequest(APIView):
 	def get(self, request, format=None):
+		username = request.query_params["username"]
+		try:
+			user=User.objects.get(username=username)
+			account_token=AccountToken.objects.get(user=user)
+		except:
+			return Response({"status":1, "info":"无该用户", "data":""})
+		try:
+			request_url="https://sandbox-api.uber.com/v1/sandbox/requests/" 
+			order = Order.objects.get(user=user)
+			request_url=request_url+order.request_id
+		except:
+			return Response({"status":1, "info":"该用户无订单", "data":""})
 
-		return Response({"status":1, "info":"用户名或密码错误", "data":""})
+		data={
+			'status': 'arriving'
+		}
+		request = urllib2.Request(request_url,json.dumps(data))
+		request.add_header('Authorization', 'Bearer '+account_token.access_token)
+		request.add_header('Content-Type', 'application/json')
+		request.get_method = lambda:"PUT"
+
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		# res_json=json.loads(ret)
+		print ret
+		return Response({"status":1, "info":"汽车已经arriving", "data":data})
+
+
+class inprogressRequest(APIView):
+	def get(self, request, format=None):
+		username = request.query_params["username"]
+		try:
+			user=User.objects.get(username=username)
+			account_token=AccountToken.objects.get(user=user)
+		except:
+			return Response({"status":1, "info":"无该用户", "data":""})
+		try:
+			request_url="https://sandbox-api.uber.com/v1/sandbox/requests/" 
+			order = Order.objects.get(user=user)
+			request_url=request_url+order.request_id
+		except:
+			return Response({"status":1, "info":"该用户无订单", "data":""})
+
+		data={
+			'status': 'in_progress'
+		}
+		request = urllib2.Request(request_url,json.dumps(data))
+		request.add_header('Authorization', 'Bearer '+account_token.access_token)
+		request.add_header('Content-Type', 'application/json')
+		request.get_method = lambda:"PUT"
+
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		# res_json=json.loads(ret)
+		print ret
+		return Response({"status":1, "info":"旅程已经开始", "data":data})
+
+
+class completedRequest(APIView):
+	def get(self, request, format=None):
+		username = request.query_params["username"]
+		try:
+			user=User.objects.get(username=username)
+			account_token=AccountToken.objects.get(user=user)
+		except:
+			return Response({"status":1, "info":"无该用户", "data":""})
+		try:
+			request_url="https://sandbox-api.uber.com/v1/sandbox/requests/" 
+			order = Order.objects.get(user=user)
+			request_url=request_url+order.request_id
+		except:
+			return Response({"status":1, "info":"该用户无订单", "data":""})
+
+		data={
+			'status': 'completed'
+		}
+		request = urllib2.Request(request_url,json.dumps(data))
+		request.add_header('Authorization', 'Bearer '+account_token.access_token)
+		request.add_header('Content-Type', 'application/json')
+		request.get_method = lambda:"PUT"
+
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		# res_json=json.loads(ret)
+		print ret
+		return Response({"status":1, "info":"订单已经完成", "data":data})
+
+
+
+
+class drivercanceledRequest(APIView):
+	def get(self, request, format=None):
+		username = request.query_params["username"]
+		try:
+			user=User.objects.get(username=username)
+			account_token=AccountToken.objects.get(user=user)
+		except:
+			return Response({"status":1, "info":"无该用户", "data":""})
+		try:
+			request_url="https://sandbox-api.uber.com/v1/sandbox/requests/" 
+			order = Order.objects.get(user=user)
+			request_url=request_url+order.request_id
+		except:
+			return Response({"status":1, "info":"该用户无订单", "data":""})
+
+		data={
+			'status': 'driver_canceled'
+		}
+		request = urllib2.Request(request_url,json.dumps(data))
+		request.add_header('Authorization', 'Bearer '+account_token.access_token)
+		request.add_header('Content-Type', 'application/json')
+		request.get_method = lambda:"PUT"
+
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		# res_json=json.loads(ret)
+		print ret
+		return Response({"status":1, "info":"司机已经取消了订单", "data":data})
+		
