@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         context = this;
         like_btn = (ImageView)findViewById(R.id.like);
 
-        getUberProfile();
+        //getUberProfile();
         getPlayList("");
 
 
@@ -247,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 VolleyUtil.getmQueue().add(customRequest);
             }
         };
-        mTimer.schedule(mTimerTask, 0, 2000);
+        mTimer.schedule(mTimerTask, 0, 10000);
         Timer mTimer2 = new Timer();
         TimerTask mTimerTask2 = new TimerTask() {
             @Override
@@ -262,6 +262,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                     @Override
                     public void run() {
                         status.setText(status_list[si]);
+                        Log.i("PPPP", status_list[si])
                     }
                 });
             }
@@ -322,7 +323,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             params.setAttributes(true);
             for (int i = 0; i < 1; i++) {
                 JSONObject jsonObject = mSTAPI.faceDetection(picture, params);
-                //Log.i("detection", jsonObject.toString());
+                Log.i("detection", jsonObject.toString());
                 JSONObject attributes = jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes");
 
                 age = attributes.getInt("age");
