@@ -349,10 +349,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     public void getPlayList(String command) {
         String url;
+
         if (command.equals(""))
             url = Constant.PLAYLIST + "?";
         else {
-            url = Constant.PLAYLIST + "?command=" + command;
+            url = Constant.PLAYLIST + "?command=" + command + "&";
 //            try {
 //                url = URLEncoder.encode(url, "UTF-8");
 //            } catch (UnsupportedEncodingException e) {
@@ -369,6 +370,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         if (attractive != -1) {
             url += ("&attractive=" + attractive);
         }
+
+        try {
+                url = URLEncoder.encode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        Log.d("command", url);
 
         CustomRequest customRequest = new CustomRequest(url, null, this,
                 new Response.Listener<JSONObject>() {
@@ -393,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                     songList.add(song);
                             }
 
-                            playIndex = -1;
+                            playIndex = 0;
                             nextMusic();
 //                            playNext();
 //                            runOnUiThread(new Runnable() {
@@ -447,7 +455,6 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //    }
 
     private void nextMusic() {
-        playIndex++;
         startMusic();
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
@@ -455,6 +462,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         title.setText(songList.get(playIndex).mediaTitle);
         audioTitle = songList.get(playIndex).mediaTitle;
         subTitle.setText(songList.get(playIndex).mediaSubtitle);
+        playIndex++;
     }
 
     private void changeMusic() {
