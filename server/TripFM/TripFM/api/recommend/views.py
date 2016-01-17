@@ -42,32 +42,38 @@ class AskToRecommend(APIView):
 		request_detail = json.loads(get_request_for_recommend("test1"))
 		status = request_detail["status"]
 		print request_detail
-		if status=='accepted':
-			pickup_eta=request_detail['pickup']['eta']
-			print pickup_eta
+		# if status=='accepted':
+		# 	pickup_eta=request_detail['pickup']['eta']
+		# 	print pickup_eta
+		# 	des_lati=request_detail['destination']['latitude']
+		# 	loc_lati=request_detail['location']['latitude']
+		# 	des_long=request_detail['destination']['longitude']
+		# 	loc_long=request_detail['location']['longitude']
+		# elif status=='arriving':
+		# 	pickup_eta=request_detail['pickup']['eta']
+		# 	print pickup_eta
+		# 	eta=request_detail['eta']
+		# 	print eta
+		# 	des_lati=request_detail['destination']['latitude']
+		# 	loc_lati=request_detail['location']['latitude']
+		# 	des_long=request_detail['destination']['longitude']
+		# 	loc_long=request_detail['location']['longitude']
+		# elif status=='in_progress':
+		# 	des_lati=request_detail['destination']['latitude']
+		# 	loc_lati=request_detail['location']['latitude']
+		# 	des_long=request_detail['destination']['longitude']
+		# 	loc_long=request_detail['location']['longitude']
+		# print abs(des_long)	
+		if status=='accepted' or status=='arriving' or status=='in_progress':
 			des_lati=request_detail['destination']['latitude']
 			loc_lati=request_detail['location']['latitude']
 			des_long=request_detail['destination']['longitude']
 			loc_long=request_detail['location']['longitude']
-		elif status=='arriving':
-			pickup_eta=request_detail['pickup']['eta']
-			print pickup_eta
-			eta=request_detail['eta']
-			print eta
-			des_lati=request_detail['destination']['latitude']
-			loc_lati=request_detail['location']['latitude']
-			des_long=request_detail['destination']['longitude']
-			loc_long=request_detail['location']['longitude']
-		elif status=='in_progress':
-			des_lati=request_detail['destination']['latitude']
-			loc_lati=request_detail['location']['latitude']
-			des_long=request_detail['destination']['longitude']
-			loc_long=request_detail['location']['longitude']
-		print abs(des_long)	
 		if des_lati!=0:
 			# duration=get_eta_by_startpoint(str("%.4f"%abs(loc_lati)),str("%.4f"%abs(loc_long)),str("%.4f"%abs(des_lati)),str("%.4f"%abs(des_long)),'test1')
 			duration=json.loads(get_eta_by_startpoint(str(abs(loc_lati)),str(abs(loc_long)),str(abs(des_lati)),str(abs(des_long)),'test1'))
-		return Response({"status":1, "info":"推荐成功", "data":duration['prices'][0]['duration']})
+			duration=duration['prices'][0]['duration']
+		return Response({"status":1, "info":"推荐成功", "data":duration})
 
 
 
@@ -75,11 +81,36 @@ class getPlayList(APIView):
 	def get(self, request, format=None):
 		request_url="http://192.168.11.39:2088"
 
+		des_lati=0
+		loc_lati=0
+		des_long=0
+		loc_long=0
+		duration=0
+		request_detail = json.loads(get_request_for_recommend("test1"))
+		status = request_detail["status"]
+		print request_detail
+		if status=='accepted' or status=='arriving' or status=='in_progress':
+			des_lati=request_detail['destination']['latitude']
+			loc_lati=request_detail['location']['latitude']
+			des_long=request_detail['destination']['longitude']
+			loc_long=request_detail['location']['longitude']
+		if des_lati!=0:
+			duration=json.loads(get_eta_by_startpoint(str(abs(loc_lati)),str(abs(loc_long)),str(abs(des_lati)),str(abs(des_long)),'test1'))
+			duration=duration['prices'][0]['duration']
+
+		try:
+			command=request.query_params["command"]
+		except:
+			command=""
+		command=json.dumps(getKeyWords(command))
+
+		request_url=request_url+'?start_latitude='+str(abs(loc_lati))+'&start_longitude='\
+		+str(abs(loc_long))+'&end_latitude='+str(abs(des_lati))+'&end_longitude='\
+		+str(abs(des_long))+'&duration='+str(duration)+'&command='+command
 		request = urllib2.Request(request_url)
 		response = urllib2.urlopen(request)
 		ret = response.read()
 		print ret
-		playlist=[]
 		# sig={
 		#     "_id" : "569a4bc16172250611f960c6",
 		#     "rytm" : 3,
