@@ -292,4 +292,26 @@ class drivercanceledRequest(APIView):
 		# res_json=json.loads(ret)
 		print ret
 		return Response({"status":1, "info":"司机已经取消了订单", "data":data})
+
+
+class getEstimateTime(APIView):
+	def get(self, request, format=None):
+		username = request.query_params["username"]
+		des_lati=0
+		loc_lati=0
+		des_long=0
+		loc_long=0
+		duration=0
+		request_detail = json.loads(get_request_for_recommend(username))
+		status = request_detail["status"]
+		print request_detail
+		if status=='accepted' or status=='arriving' or status=='in_progress':
+			des_lati=request_detail['destination']['latitude']
+			loc_lati=request_detail['location']['latitude']
+			des_long=request_detail['destination']['longitude']
+			loc_long=request_detail['location']['longitude']
+		if des_lati!=0:
+			duration=json.loads(get_eta_by_startpoint(str(abs(loc_lati)),str(abs(loc_long)),str(abs(des_lati)),str(abs(des_long)),'test1'))
+			duration=duration['prices'][0]['duration']
+		return Response({"status":0, "data":duration})
 		
