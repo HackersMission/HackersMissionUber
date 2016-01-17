@@ -20,10 +20,13 @@ import android.view.WindowManager;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
 //import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
@@ -96,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     public int tArrive;
     public String[] status_list = new String[3];
     public TextView[] tv_status = new TextView[3];
+    private String picture;
     private int eyeglass;
     private int gender;
     private int smile;
@@ -111,19 +115,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-
-        //测试sensetime
-        new Thread(test_face).start();
-
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
         context = this;
 
-        VolleyUtil volleyUtil = new VolleyUtil(this);
+        getUberProfile();
+        GetPlayList();
 
         ((MyApplication)getApplication()).setMainActivity(this);
-        GetPlayList();
         status = (TextView)findViewById(R.id.status);
 //        tv_status[0] = (TextView)findViewById(R.id.status1);
 //        tv_status[1] = (TextView)findViewById(R.id.status2);
@@ -259,25 +256,65 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         mTimer2.schedule(mTimerTask2, 0, 2000);
     }
 
+    private void getUberProfile() {
+        StringRequest request = new StringRequest(Request.Method.GET, Constant.UBER_PROFILE,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject profile = new JSONObject(response);
+                            picture = profile.getString("picture");
+                            new Thread(test_face).start();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.i("uber profile", error.toString());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsicmVxdWVzdCIsInByb2ZpbGUiLCJoaXN0b3J5IiwiaGlzdG9yeV9saXRlIiwicmVxdWVzdF9yZWNlaXB0Il0sInN1YiI6ImQxNDYxOThhLTBkNjktNGU3ZS04OTUwLTAyMDA1MWZlOWNlZSIsImlzcyI6InViZXItdXMxIiwianRpIjoiNjE5MDY3NDYtYjJhNy00NzA4LTgwMjAtNjkyZWQ1YjE3ZGVhIiwiZXhwIjoxNDU1NTg2NDM4LCJpYXQiOjE0NTI5OTQ0MzgsInVhY3QiOiJQaVBjdUswVURmZDZhYm0wZFlkY0NQdWFNSEVURnEiLCJuYmYiOjE0NTI5OTQzNDgsImF1ZCI6ImtwaUhwREowS2N4bHFrRjlyc1VQeVdPQmFmWmxhWGxGIn0.eSq1aLrYxLHN57j5myu49a7MOy71HIrqfCyK7MzDK06C-RnoRT2lnVJx1psjmsZmootLshz3A8u98bwAX1A5e6BXPM8kkBjB1_pKRnmYgoTPBzyBp7oh0gfTwXqmE8YlskLpvOi-J6xjBkKCTma7KLlH7iGE2TbSvkx10bT5dWtCAcMploEfvRlbfUpfPfcFnclnevuYcdeOPsipkuP963eP7yBOnPfZumXzr4WIbVtwhTCtvhLHyK1L888ZV63tlP042VlcGkU7ZF2JiZq33CzV9djimHdq_yswNu7cw4bdINY6MD2PAQNe-tLHTVyjo6kYUuNNQMueOC37aEXD9Q");
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(5000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        VolleyUtil.getmQueue().add(request);
+    }
+
     /**
      * 网络操作相关的子线程
      */
     Runnable test_face = new Runnable() {
         @Override
         public void run() {
-            test01InfoApi();
+            test_face_thread();
         }
     };
 
-    public void test01InfoApi()  {
+    public void test_face_thread()  {
         try {
-            Log.i("detection", "测试");
             STAPIParameters4Post params = new STAPIParameters4Post();
             params.setAttributes(true);
             for (int i = 0; i < 1; i++) {
-                JSONObject jsonObject = mSTAPI.faceDetection("https://s3.cn-north-1.amazonaws.com.cn/uber-userpictures/4ca87c739ea247b9d71c.jpeg", params);
-                Log.i("detection", jsonObject.toString());
-                Log.i("detection", jsonObject.get("status").toString());
+                JSONObject jsonObject = mSTAPI.faceDetection(picture, params);
+                //Log.i("detection", jsonObject.toString());
+                JSONObject attributes = jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes");
+
+                age = attributes.getInt("age");
+                gender = attributes.getInt("gender");
+                attractive = attributes.getInt("attractive");
+
+
+                Log.i("detection", jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes").toString());
             }
         } catch (STAPIException e) {
             Log.d("detection", e.toString());

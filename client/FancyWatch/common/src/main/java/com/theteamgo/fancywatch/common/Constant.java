@@ -24,6 +24,8 @@ public class Constant {
     public static final String UBER_REQUEST = "https://sandbox-api.uber.com/v1/requests/current";
     public static final String ESTIMATE_TIME = "http://192.168.10.222:8000/api/ubersandbox/getestimatetime/?username=test1";
 
+    public static final String BASE_UBER_URL = "https://api.uber.com/";
+    public static final String UBER_PROFILE = BASE_UBER_URL + "v1/me";
 
     public static final int CONTROL_TYPE_TOGGLE = 7001;
     public static final int CONTROL_TYEP_VOLUME_UP = 7002;
@@ -32,5 +34,8 @@ public class Constant {
     public static final int CONTROL_TYPE_INFO = 7005;
     public static final int CONTROL_WORD_COMMAND = 8000;
     public static final int CONTROL_TYPE_NEXT = 7006;
+
+    public static final String STAPI_ID = "8807147aeeaa4ea981caed1ff8d25641";
+    public static final String STAPI_SECRET = "9a7050958ff9467e837a14d678ca4b37";
 
 }
