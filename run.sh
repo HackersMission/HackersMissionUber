@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "start first trip send request"
-curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1&seq=0
+curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1\&seq=0
 read num
 echo "accept"
 curl http://192.168.10.222:8000/api/ubersandbox/accept/?username=test1
@@ -16,7 +16,7 @@ echo "completed"
 curl http://192.168.10.222:8000/api/ubersandbox/completed/?username=test1
 read num
 echo "start second trip send request"
-curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1&seq=1
+curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1\&seq=1
 read num
 echo "accept"
 curl http://192.168.10.222:8000/api/ubersandbox/accept/?username=test1
@@ -31,7 +31,7 @@ echo "completed"
 curl http://192.168.10.222:8000/api/ubersandbox/completed/?username=test1
 read num
 echo "start third trip send request"
-curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1&seq=2
+curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1&\seq=2
 read num
 echo "accept"
 curl http://192.168.10.222:8000/api/ubersandbox/accept/?username=test1
