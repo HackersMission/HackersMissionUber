@@ -32,6 +32,9 @@ import com.mobvoi.android.wearable.Wearable;
 import java.io.UnsupportedEncodingException;
 import com.theteamgo.fancywatch.common.Constant;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Timer;
@@ -114,11 +117,37 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
 //        TextView txtRslt = (TextView) findViewById(R.id.title);
 //        txtRslt.setText("onRecognitionFailed");
     }
+    /*
     public void setAudioTitle(final String title) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 audioTitle.setText(title);
+            }
+        });
+    }
+    */
+
+    public void setAudioStatus(final JSONObject obj) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    //if(!obj.getString("title").equals(audioTitle.getText().toString())) {
+                        int position = obj.getInt("position");
+                        int dur = obj.getInt("duration");
+                        mpv.setProgress(position);
+                        mpv.setMax(dur);
+                    //}
+                    audioTitle.setText(obj.getString("title"));
+                    if(obj.getBoolean("isPlaying") && !mpv.isRotating())
+                        mpv.start();
+                    else if(!obj.getBoolean("isPlaying") && mpv.isRotating())
+                        mpv.stop();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

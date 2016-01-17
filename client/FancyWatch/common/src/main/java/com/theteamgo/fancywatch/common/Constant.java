@@ -21,6 +21,8 @@ public class Constant {
     public static final String UBER_REDIRECT_URL = "https://localhost";
     public static final String ADD_TOKEN = BASE_URL + "account/addtoken/";
     public static final String PLAYLIST = BASE_URL + "recommend/getplaylist/";
+    public static final String UBER_REQUEST = "https://sandbox-api.uber.com/v1/requests/current";
+    public static final String ESTIMATE_TIME = "http://192.168.10.222:8000/api/ubersandbox/getestimatetime/?username=test1";
 
     public static final String BASE_UBER_URL = "https://api.uber.com/";
     public static final String UBER_PROFILE = BASE_UBER_URL + "v1/me";

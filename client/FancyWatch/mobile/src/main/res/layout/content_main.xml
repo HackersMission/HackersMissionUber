@@ -27,7 +27,7 @@
         android:maxWidth="200dp"
         android:textSize="15sp"
         android:layout_marginTop="10dp"
-        android:text="未打车"
+        android:text=""
         android:layout_below="@+id/textViewSong"/>
 
 
@@ -78,11 +78,46 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
+        android:textColor="#c1c1c1"
+        android:textSize="18sp"
+        android:text=""
+        android:layout_marginTop="50dp"
+        android:layout_below="@+id/textViewSong" />
+    <TextView
+        android:id="@+id/status1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
         android:textColor="@android:color/white"
         android:textSize="22sp"
-        android:text="未打车"
+        android:text=""
         android:layout_marginTop="50dp"
         android:layout_below="@+id/textViewSong"
+        android:visibility="invisible"
+        />
+    <TextView
+        android:id="@+id/status2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:text=""
+        android:layout_marginTop="50dp"
+        android:layout_below="@+id/textViewSong"
+        android:visibility="invisible"
+        />
+    <TextView
+        android:id="@+id/status3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:textColor="@android:color/white"
+        android:textSize="22sp"
+        android:text=""
+        android:layout_marginTop="50dp"
+        android:layout_below="@+id/textViewSong"
+        android:visibility="invisible"
         />
 
 </RelativeLayout>

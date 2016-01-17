@@ -23,6 +23,8 @@ import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.mobvoi.android.common.ConnectionResult;
@@ -33,6 +35,7 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
 import com.mobvoi.android.common.api.ResultCallback;
+import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
 //import com.mobvoi.android.wearable.DataEvent;
@@ -67,6 +70,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
@@ -78,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private Context context;
     public MediaPlayer mediaPlayer;
     private TextView status;
-    public String audioTitle = "test";
+    public String audioTitle = "";
 
 
     private MusicPlayerView mpv;
@@ -88,8 +93,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private TextView subTitle;
     private List<Song> songList = new ArrayList<>();
     private int playIndex = 0;
+    public int si = 0;
     private Handler mHandler;
 
+    public int tPickUp;
+    public int tArrive;
+    public String[] status_list = new String[3];
+    public TextView[] tv_status = new TextView[3];
     private String picture;
     private int eyeglass;
     private int gender;
@@ -106,6 +116,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(toolbar);
         context = this;
 
         getUberProfile();
@@ -113,6 +126,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
         ((MyApplication)getApplication()).setMainActivity(this);
         status = (TextView)findViewById(R.id.status);
+//        tv_status[0] = (TextView)findViewById(R.id.status1);
+//        tv_status[1] = (TextView)findViewById(R.id.status2);
+//        tv_status[2] = (TextView)findViewById(R.id.status3);
+
         playNextBtn = (ImageView)findViewById(R.id.next);
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
@@ -124,10 +141,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         title = (TextView) findViewById(R.id.textViewSong);
         subTitle = (TextView) findViewById(R.id.textViewSinger);
 
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.reset();
+        //mediaPlayer = new MediaPlayer();
+
+        //mediaPlayer.reset();
         mpv = (MusicPlayerView) findViewById(R.id.mpv);
+        /*
         mpv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -140,12 +158,108 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 }
             }
         });
+        */
 
         mpv.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 togglePlayer();
             }
         });
+        Timer mTimer = new Timer();
+        TimerTask mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                CustomRequest customRequest = new CustomRequest(Constant.UBER_REQUEST, null, context,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    Log.i("FUCK", response.toString());
+                                    String s = response.getString("status");
+                                    if (s.equals("processing")) {
+                                        status_list[0]=("等待接单中");
+                                    }
+                                    else if (s.equals("accepted")) {
+                                        status_list[0]=("Uber正向您驶来");
+                                        int t = response.getJSONObject("pickup").getInt("eta");
+                                        tPickUp = t;
+                                        status_list[1]=("预计" + t + "分钟到达");
+                                        CustomRequest customRequest = new CustomRequest(Constant.ESTIMATE_TIME, null, context,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        try {
+                                                            tArrive = response.getInt("data");
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                    }
+                                                }) {
+                                        };
+                                        customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                                        VolleyUtil.getmQueue().add(customRequest);
+                                    } else if (s.equals("arriving")) {
+                                        status_list[0]=("司机即将到达");
+                                        status_list[1]=("预计1分钟后到达");
+                                    } else if (s.equals("in_progress")) {
+                                        status_list[0]=("乘车中");
+                                        status_list[1]=("预计"+tArrive/60+"分钟后到达目的地");
+                                    } else if (s.equals("completed")) {
+                                        status_list[0]=("祝您旅途愉快");
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+//                                Log.i("FUCKERROR", error.toString());
+//                                error.printStackTrace();
+                                status_list[0]=("欢迎乘坐Uber");
+                            }
+                        }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap<String, String>();
+                        headers.put("Authorization", "Bearer "+ ((MyApplication)getApplication()).getSharedPreference("ubertoken"));
+                        return headers;
+                    }
+                };
+                customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                VolleyUtil.getmQueue().add(customRequest);
+            }
+        };
+        mTimer.schedule(mTimerTask, 0, 1000);
+        Timer mTimer2 = new Timer();
+        TimerTask mTimerTask2 = new TimerTask() {
+            @Override
+            public void run() {
+//                YoYo.with(Techniques.FadeOut).duration(2000).playOn(tv_status[si]);
+
+                si ++;
+                if (si == 3)
+                    si = 0;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        status.setText(status_list[si]);
+                    }
+                });
+            }
+        };
+        mTimer2.schedule(mTimerTask2, 0, 2000);
     }
 
     private void getUberProfile() {
@@ -233,13 +347,18 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                 song.mediaTitle = jsonObject.getString("mediaTitle");
                                 song.mediaSubtitle = jsonObject.getString("mediaSubtitle");
                                 song.mediaLength = jsonObject.getInt("mediaLength");
+                                status_list[2]=(jsonObject.getString("msg"));
                                 if (song.mediaLength < 300)
                                     songList.add(song);
                             }
 
                             playIndex = -1;
-                            playAll(); 
-
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    playAll();
+                                }
+                            });
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -258,11 +377,20 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     private void startMusic(int index) {
-        mediaPlayer.reset();
         try {
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.reset();
             mediaPlayer.setDataSource(songList.get(index).mediaUrl);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mp.start();
+                    mpv.start();
+                }
+            });
+            //mediaPlayer.start();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -270,34 +398,27 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     private void stopMusic() {
-        if (mediaPlayer.isPlaying()) {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();// 停止
-        }
-        if(mpv.isRotating())
             mpv.stop();
+            mediaPlayer.release();
+        }
     }
 
     private void nextMusic() {
         stopMusic();
-        playIndex++;
-        if (playIndex >= songList.size()) {
-            return;
-        }
-
+        playIndex = (playIndex + 1) % songList.size();
         startMusic(playIndex);
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
         mpv.setProgress(0);
         title.setText(songList.get(playIndex).mediaTitle);
+        audioTitle = songList.get(playIndex).mediaTitle;
         subTitle.setText(songList.get(playIndex).mediaSubtitle);
-        mpv.start();
     }
 
     private void playAll() {
         nextMusic();
-        if (playIndex >= songList.size()) {
-            return;
-        }
         /* 当MediaPlayer.OnCompletionLister会运行的Listener */
         mediaPlayer.setOnCompletionListener(
                 new MediaPlayer.OnCompletionListener() {
@@ -347,6 +468,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     public void playNext() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                nextMusic();
+            }
+        });
     }
 
     public void sendAudioInfo() {
@@ -480,6 +607,33 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             }
         });
         */
+
+        try {
+            int type = Integer.valueOf(messageEvent.getPath());
+            String txt2= new String(messageEvent.getData(), "utf-8");
+            Log.d("FUCK2", txt2);
+            if (type == Constant.CONTROL_TYPE_TOGGLE) {
+                if(((MyApplication) getApplication()).getMainActivity() != null)
+                    ((MyApplication) getApplication()).getMainActivity().togglePlayer();
+            } else if(type == Constant.CONTROL_TYEP_REQUEST_INFO){
+                if(((MyApplication) getApplication()).getMainActivity() != null)
+                    ((MyApplication) getApplication()).getMainActivity().sendAudioInfo();
+                Log.d(TAG, "requset info");
+            }
+            //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+            else if (type == Constant.CONTROL_WORD_COMMAND) {
+                String txt = new String(messageEvent.getData(), "utf-8");
+                //Log.d("FUCK", txt);
+                if(txt.indexOf("换台") != -1)
+                    ((MyApplication) getApplication()).getMainActivity().playNext();
+                else
+                    ((MyApplication) getApplication()).getMainActivity().changeStatus(txt);
+            } else if (type == Constant.CONTROL_TYPE_NEXT) {
+                ((MyApplication) getApplication()).getMainActivity().playNext();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -555,10 +709,23 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
         @Override
         protected Void doInBackground(Void... args) {
+            if(mediaPlayer == null)
+                return null;
             Collection<String> nodes = getNodes();
-            for (String node : nodes) {
-                sendAudioInfoMessage(node, audioTitle);
+            JSONObject jobject = new JSONObject();
+            try {
+                jobject.put("title",audioTitle);
+                jobject.put("isPlaying",mediaPlayer.isPlaying());
+                jobject.put("position",mediaPlayer.getCurrentPosition());
+                jobject.put("duration",mediaPlayer.getDuration());
+                String jstr = jobject.toString();
+                for (String node : nodes) {
+                    sendAudioInfoMessage(node, jstr);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+
             return null;
         }
     }

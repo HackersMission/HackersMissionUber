@@ -15,6 +15,9 @@ import com.mobvoi.android.wearable.Wearable;
 import com.mobvoi.android.wearable.WearableListenerService;
 import com.theteamgo.fancywatch.common.Constant;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -55,9 +58,10 @@ public class DataLayerListenerService extends WearableListenerService {
             if (type == Constant.CONTROL_TYPE_INFO) {
                 if(((MyApplication) getApplication()).getMainActivity() != null) {
                     String str = new String(messageEvent.getData(), "UTF-8");
-                    ((MyApplication) getApplication()).getMainActivity().setAudioTitle(str);
+                    JSONObject jobject = new JSONObject(str);
+                    ((MyApplication) getApplication()).getMainActivity().setAudioStatus(jobject);
+                    Log.d(TAG, "get audio info: " + str);
                 }
-                Log.d(TAG, "get audio info");
             }
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {

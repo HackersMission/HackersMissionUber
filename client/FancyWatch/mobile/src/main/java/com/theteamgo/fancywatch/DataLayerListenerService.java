@@ -28,10 +28,12 @@ public class DataLayerListenerService extends WearableListenerService {
     @Override
     public void onCreate() {
         super.onCreate();
+        /*
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .build();
         mMobvoiApiClient.connect();
+        */
     }
 
     @Override
@@ -50,29 +52,7 @@ public class DataLayerListenerService extends WearableListenerService {
         //    startActivity(startIntent);
         //}
 
-        try {
-            int type = Integer.valueOf(messageEvent.getPath());
-            String txt2= new String(messageEvent.getData(), "utf-8");
-            Log.d("FUCK2", txt2);
-            if (type == Constant.CONTROL_TYPE_TOGGLE) {
-                if(((MyApplication) getApplication()).getMainActivity() != null)
-                    ((MyApplication) getApplication()).getMainActivity().togglePlayer();
-            } else if(type == Constant.CONTROL_TYEP_REQUEST_INFO){
-                if(((MyApplication) getApplication()).getMainActivity() != null)
-                    ((MyApplication) getApplication()).getMainActivity().sendAudioInfo();
-                Log.d(TAG, "requset info");
-            }
-            //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
-            else if (type == Constant.CONTROL_WORD_COMMAND) {
-                String txt = new String(messageEvent.getData(), "utf-8");
-                Log.d("FUCK", txt);
-                ((MyApplication) getApplication()).getMainActivity().changeStatus(txt);
-            } else if (type == Constant.CONTROL_TYPE_NEXT) {
-                ((MyApplication) getApplication()).getMainActivity().playNext();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override
