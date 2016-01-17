@@ -52,6 +52,8 @@ public class DataLayerListenerService extends WearableListenerService {
 
         try {
             int type = Integer.valueOf(messageEvent.getPath());
+            String txt2= new String(messageEvent.getData(), "utf-8");
+            Log.d("FUCK2", txt2);
             if (type == Constant.CONTROL_TYPE_TOGGLE) {
                 if(((MyApplication) getApplication()).getMainActivity() != null)
                     ((MyApplication) getApplication()).getMainActivity().togglePlayer();

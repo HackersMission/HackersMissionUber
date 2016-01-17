@@ -202,6 +202,8 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
         @Override
         protected Void doInBackground(Integer... args) {
             Collection<String> nodes = getNodes();
+            Log.i("FUCK4", nodes.size()+"");
+
             for (String node : nodes) {
                 sendGestureMessage(node, args[0]);
             }
@@ -214,6 +216,8 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
         @Override
         protected Void doInBackground(String... args) {
             Collection<String> nodes = getNodes();
+            while (nodes.size()==0)
+                nodes = getNodes();
             Log.i("FUCK2", args[0]);
             Log.i("FUCK2", nodes.size()+"");
 
@@ -255,7 +259,8 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                 });
             }
         });
-        new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
+//        Log.i("FUCK4","before sync");
+        //new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
     }
 
     @Override

@@ -29,14 +29,16 @@ public class LoginActivity extends AppCompatActivity {
         name_text = (EditText) findViewById(R.id.nickNameEditText);
         password_text = (EditText) findViewById(R.id.password_EditText);
         VolleyUtil volleyUtil = new VolleyUtil(getApplication());
+        Log.i("name", ((MyApplication)getApplication()).getSharedPreference("username"));
+        Log.i("password", ((MyApplication)getApplication()).getSharedPreference("password"));
+        if (!((MyApplication)getApplication()).getSharedPreference("username").equals("") && !((MyApplication)getApplication()).getSharedPreference("password").equals("")) {
+            login(((MyApplication)getApplication()).getSharedPreference("username"), ((MyApplication)getApplication()).getSharedPreference("password"));
+        }
 
     }
 
-    public void click_to_login(View v) {
-        String name = name_text.getText().toString();
-        String password = password_text.getText().toString();
-        name = "test1";
-        password = "12345";
+    public void login(String name, String password) {
+        Log.i("test", "login");
         final String finalName = name;
         CustomRequest customRequest = new CustomRequest(Constant.LOGIN + "?username=" + name + "&password=" + password, null, this,
                 new Response.Listener<JSONObject>() {
@@ -65,6 +67,15 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
         VolleyUtil.getmQueue().add(customRequest);
+    }
+
+    public void click_to_login(View v) {
+        String name = name_text.getText().toString();
+        String password = password_text.getText().toString();
+        name = "test1";
+        password = "12345";
+        ((MyApplication)getApplication()).saveSharedPreferences(name, password);
+        login(name, password);
     }
 
     public void click_to_register(View v) {
