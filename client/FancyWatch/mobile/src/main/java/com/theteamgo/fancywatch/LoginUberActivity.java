@@ -108,6 +108,9 @@ public class LoginUberActivity extends AppCompatActivity {
                                 String expires_in = response.getString("expires_in");
                                 String last_authenticated = response.getString("last_authenticated");
                                 String refresh_token = response.getString("refresh_token");
+                                Log.i("FUCK", access_token);
+                                ((MyApplication)getApplication()).saveUberToken(access_token);
+
 
                                 CustomRequest customRequest1 = new CustomRequest(Constant.ADD_TOKEN +
                                         "?token_type=" + token_type +

@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
+        app:cover = "@drawable/cd"
         app:textSize = "14sp"
         app:textColor = "#25272d"
         app:buttonColor = "#eb5902"

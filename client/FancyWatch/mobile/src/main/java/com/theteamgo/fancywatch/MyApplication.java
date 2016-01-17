@@ -30,9 +30,22 @@ public class MyApplication extends Application {
         //提交当前数据
         editor.commit();
         //使用toast信息提示框提示成功写入数据
-        Toast.makeText(this, "数据成功写入SharedPreferences！", Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, "数据成功写入SharedPreferences！", Toast.LENGTH_LONG).show();
     }
 
+
+    public void saveUberToken(String token) {
+        SharedPreferences mySharedPreferences= getSharedPreferences("test",
+                Activity.MODE_PRIVATE);
+        //实例化SharedPreferences.Editor对象（第二步）
+        SharedPreferences.Editor editor = mySharedPreferences.edit();
+        //用putString的方法保存数据
+        editor.putString("ubertoken", token);
+        //提交当前数据
+        editor.commit();
+        //使用toast信息提示框提示成功写入数据
+//        Toast.makeText(this, "数据成功写入SharedPreferences！", Toast.LENGTH_LONG).show();
+    }
     public String getSharedPreference(String name) {
         //同样，在读取SharedPreferences数据前要实例化出一个SharedPreferences对象
         SharedPreferences sharedPreferences= getSharedPreferences("test",

@@ -3,15 +3,11 @@ package com.theteamgo.fancywatch;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -21,11 +17,16 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
 //import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
@@ -49,6 +50,9 @@ import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 import com.theteamgo.fancywatch.common.Constant;
 import com.theteamgo.fancywatch.utils.CustomRequest;
+import com.theteamgo.fancywatch.utils.STAPI.STAPI;
+import com.theteamgo.fancywatch.utils.STAPI.STAPIException;
+import com.theteamgo.fancywatch.utils.STAPI.STAPIParameters4Post;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
 import org.json.JSONArray;
@@ -62,8 +66,12 @@ import co.mobiwise.playerview.MusicPlayerView;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
@@ -85,7 +93,23 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private TextView subTitle;
     private List<Song> songList = new ArrayList<>();
     private int playIndex = 0;
+    public int si = 0;
     private Handler mHandler;
+
+    public int tPickUp;
+    public int tArrive;
+    public String[] status_list = new String[3];
+    public TextView[] tv_status = new TextView[3];
+    private String picture;
+    private int eyeglass;
+    private int gender;
+    private int smile;
+    private int sunglass;
+    private int attractive;
+    private int age;
+
+
+    private STAPI mSTAPI = new STAPI(Constant.STAPI_ID, Constant.STAPI_SECRET);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,11 +121,15 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //        setSupportActionBar(toolbar);
         context = this;
 
-        VolleyUtil volleyUtil = new VolleyUtil(this);
+        getUberProfile();
+        GetPlayList();
 
         ((MyApplication)getApplication()).setMainActivity(this);
-        GetPlayList();
         status = (TextView)findViewById(R.id.status);
+//        tv_status[0] = (TextView)findViewById(R.id.status1);
+//        tv_status[1] = (TextView)findViewById(R.id.status2);
+//        tv_status[2] = (TextView)findViewById(R.id.status3);
+
         playNextBtn = (ImageView)findViewById(R.id.next);
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
@@ -137,6 +165,168 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 togglePlayer();
             }
         });
+        Timer mTimer = new Timer();
+        TimerTask mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                CustomRequest customRequest = new CustomRequest(Constant.UBER_REQUEST, null, context,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    Log.i("FUCK", response.toString());
+                                    String s = response.getString("status");
+                                    if (s.equals("processing")) {
+                                        status_list[0]=("等待接单中");
+                                    }
+                                    else if (s.equals("accepted")) {
+                                        status_list[0]=("Uber正向您驶来");
+                                        int t = response.getJSONObject("pickup").getInt("eta");
+                                        tPickUp = t;
+                                        status_list[1]=("预计" + t + "分钟到达");
+                                        CustomRequest customRequest = new CustomRequest(Constant.ESTIMATE_TIME, null, context,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        try {
+                                                            tArrive = response.getInt("data");
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                    }
+                                                }) {
+                                        };
+                                        customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                                        VolleyUtil.getmQueue().add(customRequest);
+                                    } else if (s.equals("arriving")) {
+                                        status_list[0]=("司机即将到达");
+                                        status_list[1]=("预计1分钟后到达");
+                                    } else if (s.equals("in_progress")) {
+                                        status_list[0]=("乘车中");
+                                        status_list[1]=("预计"+tArrive/60+"分钟后到达目的地");
+                                    } else if (s.equals("completed")) {
+                                        status_list[0]=("祝您旅途愉快");
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+//                                Log.i("FUCKERROR", error.toString());
+//                                error.printStackTrace();
+                                status_list[0]=("欢迎乘坐Uber");
+                            }
+                        }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap<String, String>();
+                        headers.put("Authorization", "Bearer "+ ((MyApplication)getApplication()).getSharedPreference("ubertoken"));
+                        return headers;
+                    }
+                };
+                customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                VolleyUtil.getmQueue().add(customRequest);
+            }
+        };
+        mTimer.schedule(mTimerTask, 0, 1000);
+        Timer mTimer2 = new Timer();
+        TimerTask mTimerTask2 = new TimerTask() {
+            @Override
+            public void run() {
+//                YoYo.with(Techniques.FadeOut).duration(2000).playOn(tv_status[si]);
+
+                si ++;
+                if (si == 3)
+                    si = 0;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        status.setText(status_list[si]);
+                    }
+                });
+            }
+        };
+        mTimer2.schedule(mTimerTask2, 0, 2000);
+    }
+
+    private void getUberProfile() {
+        StringRequest request = new StringRequest(Request.Method.GET, Constant.UBER_PROFILE,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject profile = new JSONObject(response);
+                            picture = profile.getString("picture");
+                            new Thread(test_face).start();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.i("uber profile", error.toString());
+                    }
+                }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsicmVxdWVzdCIsInByb2ZpbGUiLCJoaXN0b3J5IiwiaGlzdG9yeV9saXRlIiwicmVxdWVzdF9yZWNlaXB0Il0sInN1YiI6ImQxNDYxOThhLTBkNjktNGU3ZS04OTUwLTAyMDA1MWZlOWNlZSIsImlzcyI6InViZXItdXMxIiwianRpIjoiNjE5MDY3NDYtYjJhNy00NzA4LTgwMjAtNjkyZWQ1YjE3ZGVhIiwiZXhwIjoxNDU1NTg2NDM4LCJpYXQiOjE0NTI5OTQ0MzgsInVhY3QiOiJQaVBjdUswVURmZDZhYm0wZFlkY0NQdWFNSEVURnEiLCJuYmYiOjE0NTI5OTQzNDgsImF1ZCI6ImtwaUhwREowS2N4bHFrRjlyc1VQeVdPQmFmWmxhWGxGIn0.eSq1aLrYxLHN57j5myu49a7MOy71HIrqfCyK7MzDK06C-RnoRT2lnVJx1psjmsZmootLshz3A8u98bwAX1A5e6BXPM8kkBjB1_pKRnmYgoTPBzyBp7oh0gfTwXqmE8YlskLpvOi-J6xjBkKCTma7KLlH7iGE2TbSvkx10bT5dWtCAcMploEfvRlbfUpfPfcFnclnevuYcdeOPsipkuP963eP7yBOnPfZumXzr4WIbVtwhTCtvhLHyK1L888ZV63tlP042VlcGkU7ZF2JiZq33CzV9djimHdq_yswNu7cw4bdINY6MD2PAQNe-tLHTVyjo6kYUuNNQMueOC37aEXD9Q");
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(5000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        VolleyUtil.getmQueue().add(request);
+    }
+
+    /**
+     * 网络操作相关的子线程
+     */
+    Runnable test_face = new Runnable() {
+        @Override
+        public void run() {
+            test_face_thread();
+        }
+    };
+
+    public void test_face_thread()  {
+        try {
+            STAPIParameters4Post params = new STAPIParameters4Post();
+            params.setAttributes(true);
+            for (int i = 0; i < 1; i++) {
+                JSONObject jsonObject = mSTAPI.faceDetection(picture, params);
+                //Log.i("detection", jsonObject.toString());
+                JSONObject attributes = jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes");
+
+                age = attributes.getInt("age");
+                gender = attributes.getInt("gender");
+                attractive = attributes.getInt("attractive");
+
+
+                Log.i("detection", jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes").toString());
+            }
+        } catch (STAPIException e) {
+            Log.d("detection", e.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void GetPlayList() {
@@ -157,6 +347,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                 song.mediaTitle = jsonObject.getString("mediaTitle");
                                 song.mediaSubtitle = jsonObject.getString("mediaSubtitle");
                                 song.mediaLength = jsonObject.getInt("mediaLength");
+                                status_list[2]=(jsonObject.getString("msg"));
                                 if (song.mediaLength < 300)
                                     songList.add(song);
                             }
