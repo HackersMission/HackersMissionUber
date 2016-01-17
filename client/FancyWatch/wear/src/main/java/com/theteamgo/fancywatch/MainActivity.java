@@ -98,7 +98,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                 new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
             }
         };
-        //mTimer.schedule(mTimerTask, 2000, 2000);
+        mTimer.schedule(mTimerTask, 2000, 2000);
     }
 
 
@@ -298,7 +298,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
     @Override
     public void onMessageReceived(MessageEvent event) {
         LOGD(TAG, "onMessageReceived: " + event);
-        Toast.makeText(getApplicationContext(), "message", Toast.LENGTH_SHORT);
+        //Toast.makeText(getApplicationContext(), "message", Toast.LENGTH_SHORT);
     }
 
     @Override

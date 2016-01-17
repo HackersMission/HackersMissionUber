@@ -17,10 +17,13 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.mobvoi.android.common.ConnectionResult;
@@ -76,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
 
     private MusicPlayerView mpv;
+    private ImageView playNextBtn;
 
     private TextView title;
     private TextView subTitle;
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         ((MyApplication)getApplication()).setMainActivity(this);
         GetPlayList();
         status = (TextView)findViewById(R.id.status);
+        playNextBtn = (ImageView)findViewById(R.id.next);
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
                 .addApi(Wearable.API)
@@ -165,9 +170,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-
+                        error.printStackTrace();
                     }
                 });
+        customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         VolleyUtil.getmQueue().add(customRequest);
     }
 
@@ -187,8 +195,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();// 停止
         }
-        
-        mpv.stop();
+        if(mpv.isRotating())
+            mpv.stop();
     }
 
     private void nextMusic() {
@@ -214,17 +222,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         }
         /* 当MediaPlayer.OnCompletionLister会运行的Listener */
         mediaPlayer.setOnCompletionListener(
-                new MediaPlayer.OnCompletionListener()
-                {
+                new MediaPlayer.OnCompletionListener() {
                     // @Override
-                    public void onCompletion(MediaPlayer arg0)
-                    {
-                        try
-                        {
+                    public void onCompletion(MediaPlayer arg0) {
+                        try {
                             nextMusic();
-                        }
-                        catch (Exception e)
-                        {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
@@ -493,5 +496,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         new StartWearableActivityTask().execute();
 
         Log.v(TAG, "test send");
+    }
+
+    public void click_play_next(View v) {
+        nextMusic();
     }
 }
