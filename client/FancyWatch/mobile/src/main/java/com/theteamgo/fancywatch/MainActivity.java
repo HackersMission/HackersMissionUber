@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                             }
 
                             playIndex = -1;
-                            playAll();
+                            playAll(); 
 
                         } catch (JSONException e) {
                             e.printStackTrace();
