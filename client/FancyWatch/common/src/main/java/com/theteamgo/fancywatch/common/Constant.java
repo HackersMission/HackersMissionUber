@@ -29,5 +29,6 @@ public class Constant {
     public static final int CONTROL_TYEP_REQUEST_INFO = 7004;
     public static final int CONTROL_TYPE_INFO = 7005;
     public static final int CONTROL_WORD_COMMAND = 8000;
+    public static final int CONTROL_TYPE_NEXT = 7006;
 
 }
