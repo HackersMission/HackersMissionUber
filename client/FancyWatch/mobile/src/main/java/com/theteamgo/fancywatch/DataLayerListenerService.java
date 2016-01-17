@@ -50,10 +50,6 @@ public class DataLayerListenerService extends WearableListenerService {
         //    startActivity(startIntent);
         //}
 
-        long pre = timestamp;
-        timestamp = new Date().getTime();
-        if(timestamp - pre < 1000)
-            return;
         try {
             int type = Integer.valueOf(messageEvent.getPath());
             if (type == Constant.CONTROL_TYPE_TOGGLE) {
@@ -66,9 +62,11 @@ public class DataLayerListenerService extends WearableListenerService {
             }
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
             else if (type == Constant.CONTROL_WORD_COMMAND) {
-                String txt= new String(messageEvent.getData(), "utf-8");
+                String txt = new String(messageEvent.getData(), "utf-8");
                 Log.d("FUCK", txt);
-                ((MyApplication)getApplication()).getMainActivity().changeStatus(txt);
+                ((MyApplication) getApplication()).getMainActivity().changeStatus(txt);
+            } else if (type == Constant.CONTROL_TYPE_NEXT) {
+                ((MyApplication) getApplication()).getMainActivity().playNext();
             }
         } catch (Exception e) {
             e.printStackTrace();

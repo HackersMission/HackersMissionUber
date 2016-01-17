@@ -98,7 +98,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                 new StartGestureMessageTask().execute(Constant.CONTROL_TYEP_REQUEST_INFO);
             }
         };
-        mTimer.schedule(mTimerTask, 2000, 2000);
+        //mTimer.schedule(mTimerTask, 2000, 2000);
     }
 
 
@@ -241,7 +241,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                         String s = "";
                         if (type == GestureType.TYPE_TWICE_TURN_WRIST) {
                             s = "turn wrist twice";
-                            new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_TOGGLE);
+                            new StartGestureMessageTask().execute(Constant.CONTROL_TYPE_NEXT);
                         } else if (type == GestureType.TYPE_TURN_WRIST_UP) {
                             s = "turn wrist up";
                         } else if (type == GestureType.TYPE_TURN_WRIST_DOWN) {
