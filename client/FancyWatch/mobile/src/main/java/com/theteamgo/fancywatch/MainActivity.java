@@ -443,7 +443,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                 public void onCompletion(MediaPlayer arg0) {
                                     Log.i("FUCKKKKK", "FUCK");
                                     try {
-                                        nextMusic();
+                                        finishMusic();
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                     }
@@ -480,7 +480,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     private void changeMusic() {
         CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=1&username="
-                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex - 1).mediaUrl, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -501,7 +501,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         like_btn.setImageResource(R.drawable.icon_like_red);
 
         CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=2&username="
-                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex - 1).mediaUrl, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -519,7 +519,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     private void finishMusic() {
         CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=0&username="
-                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex - 1).mediaUrl, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -860,5 +860,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     public void click_praise(View v) {
         praiseMusic();
+    }
+
+    public void click_change(View v) {
+        getPlayList("");
     }
 }

@@ -63,6 +63,7 @@
         android:layout_below="@+id/mpv"
         android:layout_alignRight="@+id/mpv"
         android:layout_marginTop="50dp"
+        android:clickable="true"
         android:onClick="click_play_next"/>
 
 
@@ -73,7 +74,9 @@
         android:background="@drawable/icon_previous"
         android:layout_below="@+id/mpv"
         android:layout_alignLeft="@+id/mpv"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="50dp"
+        android:clickable="true"
+        android:onClick="click_change"/>
 
     <TextView
         android:id="@+id/status"
