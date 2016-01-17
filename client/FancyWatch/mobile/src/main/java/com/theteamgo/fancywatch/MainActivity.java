@@ -23,9 +23,12 @@ import android.widget.TextView;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 import com.mobvoi.android.common.ConnectionResult;
 import com.mobvoi.android.common.api.MobvoiApiClient;
 //import com.mobvoi.android.common.api.MobvoiApiClient.ConnectionCallbacks;
@@ -62,8 +65,12 @@ import co.mobiwise.playerview.MusicPlayerView;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements DataApi.DataListener,
         MessageApi.MessageListener, NodeApi.NodeListener, MobvoiApiClient.ConnectionCallbacks,
@@ -85,7 +92,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private TextView subTitle;
     private List<Song> songList = new ArrayList<>();
     private int playIndex = 0;
+    public int si = 0;
     private Handler mHandler;
+
+    public int tPickUp;
+    public int tArrive;
+    public String[] status_list = new String[3];
+    public TextView[] tv_status = new TextView[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +115,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         ((MyApplication)getApplication()).setMainActivity(this);
         GetPlayList();
         status = (TextView)findViewById(R.id.status);
+//        tv_status[0] = (TextView)findViewById(R.id.status1);
+//        tv_status[1] = (TextView)findViewById(R.id.status2);
+//        tv_status[2] = (TextView)findViewById(R.id.status3);
+
         playNextBtn = (ImageView)findViewById(R.id.next);
         mHandler = new Handler();
         mMobvoiApiClient = new MobvoiApiClient.Builder(this)
@@ -135,6 +152,101 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 togglePlayer();
             }
         });
+        Timer mTimer = new Timer();
+        TimerTask mTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                CustomRequest customRequest = new CustomRequest(Constant.UBER_REQUEST, null, context,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    Log.i("FUCK", response.toString());
+                                    String s = response.getString("status");
+                                    if (s.equals("processing")) {
+                                        status_list[0]=("等待接单中");
+                                    }
+                                    else if (s.equals("accepted")) {
+                                        status_list[0]=("Uber正向您驶来");
+                                        int t = response.getJSONObject("pickup").getInt("eta");
+                                        tPickUp = t;
+                                        status_list[1]=("预计" + t + "分钟到达");
+                                        CustomRequest customRequest = new CustomRequest(Constant.ESTIMATE_TIME, null, context,
+                                                new Response.Listener<JSONObject>() {
+                                                    @Override
+                                                    public void onResponse(JSONObject response) {
+                                                        try {
+                                                            tArrive = response.getInt("data");
+                                                        } catch (JSONException e) {
+                                                            e.printStackTrace();
+                                                        }
+                                                    }
+                                                },
+                                                new Response.ErrorListener() {
+                                                    @Override
+                                                    public void onErrorResponse(VolleyError error) {
+                                                    }
+                                                }) {
+                                        };
+                                        customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                                                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                                                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                                        VolleyUtil.getmQueue().add(customRequest);
+                                    } else if (s.equals("arriving")) {
+                                        status_list[0]=("司机即将到达");
+                                        status_list[1]=("预计1分钟后到达");
+                                    } else if (s.equals("in_progress")) {
+                                        status_list[0]=("乘车中");
+                                        status_list[1]=("预计"+tArrive/60+"分钟后到达目的地");
+                                    } else if (s.equals("completed")) {
+                                        status_list[0]=("祝您旅途愉快");
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+//                                Log.i("FUCKERROR", error.toString());
+//                                error.printStackTrace();
+                                status_list[0]=("欢迎乘坐Uber");
+                            }
+                        }) {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        HashMap<String, String> headers = new HashMap<String, String>();
+                        headers.put("Authorization", "Bearer "+ ((MyApplication)getApplication()).getSharedPreference("ubertoken"));
+                        return headers;
+                    }
+                };
+                customRequest.setRetryPolicy(new DefaultRetryPolicy(15000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                VolleyUtil.getmQueue().add(customRequest);
+            }
+        };
+        mTimer.schedule(mTimerTask, 0, 1000);
+        Timer mTimer2 = new Timer();
+        TimerTask mTimerTask2 = new TimerTask() {
+            @Override
+            public void run() {
+//                YoYo.with(Techniques.FadeOut).duration(2000).playOn(tv_status[si]);
+
+                si ++;
+                if (si == 3)
+                    si = 0;
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        status.setText(status_list[si]);
+                    }
+                });
+            }
+        };
+        mTimer2.schedule(mTimerTask2, 0, 2000);
     }
 
     public void GetPlayList() {
@@ -155,6 +267,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                 song.mediaTitle = jsonObject.getString("mediaTitle");
                                 song.mediaSubtitle = jsonObject.getString("mediaSubtitle");
                                 song.mediaLength = jsonObject.getInt("mediaLength");
+                                status_list[2]=(jsonObject.getString("msg"));
                                 if (song.mediaLength < 300)
                                     songList.add(song);
                             }
@@ -210,8 +323,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
         mpv.setProgress(0);
-        title.setText(songList.get(playIndex).mediaTitle);
-        subTitle.setText(songList.get(playIndex).mediaSubtitle);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                title.setText(songList.get(playIndex).mediaTitle);
+                subTitle.setText(songList.get(playIndex).mediaSubtitle);
+            }
+        });
         mpv.start();
     }
 
