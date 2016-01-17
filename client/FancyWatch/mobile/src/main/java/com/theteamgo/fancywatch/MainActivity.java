@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private TextView title;
     private TextView subTitle;
     private List<Song> songList = new ArrayList<>();
+    private int song_length;
     private int playIndex = 0;
     public int si = 0;
     private Handler mHandler;
@@ -241,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 VolleyUtil.getmQueue().add(customRequest);
             }
         };
-        mTimer.schedule(mTimerTask, 0, 1000);
+        mTimer.schedule(mTimerTask, 0, 2000);
         Timer mTimer2 = new Timer();
         TimerTask mTimerTask2 = new TimerTask() {
             @Override
@@ -261,6 +262,19 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             }
         };
         mTimer2.schedule(mTimerTask2, 0, 2000);
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setOnCompletionListener(
+                new MediaPlayer.OnCompletionListener() {
+                    // @Override
+                    public void onCompletion(MediaPlayer arg0) {
+                        try {
+                            nextMusic();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
 
     private void getUberProfile() {
@@ -332,15 +346,16 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     public void getPlayList(String command) {
         String url;
+        Log.i("FUCK4", command);
         if (command.equals(""))
             url = Constant.PLAYLIST;
         else {
             url = Constant.PLAYLIST + "?command=" + command;
-            try {
-                url = URLEncoder.encode(url, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                url = URLEncoder.encode(url, "UTF-8");
+//            } catch (UnsupportedEncodingException e) {
+//                e.printStackTrace();
+//            }
         }
 
         CustomRequest customRequest = new CustomRequest(url, null, this,
@@ -351,6 +366,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                         try {
                             jsonArray = new JSONArray(response.getString("data"));
                             Log.i("test", jsonArray.toString());
+                            song_length = jsonArray.length();
                             songList.clear();
                             for (int i = 0 ; i < jsonArray.length() ; i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -366,12 +382,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                             }
 
                             playIndex = -1;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    playAll();
-                                }
-                            });
+                            playNext();
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    playAll();
+//                                }
+//                            });
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -389,12 +406,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         VolleyUtil.getmQueue().add(customRequest);
     }
 
-    private void startMusic(int index) {
+    private void startMusic() {
         try {
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            if (playIndex>= songList.size())
+                playIndex=0;
+            mpv.stop();
             mediaPlayer.reset();
-            mediaPlayer.setDataSource(songList.get(index).mediaUrl);
+            mediaPlayer.setDataSource(songList.get(playIndex).mediaUrl);
             mediaPlayer.prepareAsync();
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -403,25 +421,21 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                     mpv.start();
                 }
             });
-            //mediaPlayer.start();
+
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void stopMusic() {
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            mediaPlayer.stop();// 停止
-            mpv.stop();
-            mediaPlayer.release();
-        }
-    }
+//    private void stopMusic() {
+//            mediaPlayer.pause();// 停止
+//            mpv.stop();
+//    }
 
     private void nextMusic() {
-        stopMusic();
-        playIndex = (playIndex + 1) % songList.size();
-        startMusic(playIndex);
+        playIndex++;
+        startMusic();
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
         mpv.setProgress(0);
@@ -430,30 +444,31 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         subTitle.setText(songList.get(playIndex).mediaSubtitle);
     }
 
-    private void playAll() {
-        nextMusic();
-        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
-        mediaPlayer.setOnCompletionListener(
-                new MediaPlayer.OnCompletionListener() {
-                    // @Override
-                    public void onCompletion(MediaPlayer arg0) {
-                        try {
-                            nextMusic();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-    }
+//    private void playAll() {
+//        nextMusic();
+//        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
+//        mediaPlayer.setOnCompletionListener(
+//                new MediaPlayer.OnCompletionListener() {
+//                    // @Override
+//                    public void onCompletion(MediaPlayer arg0) {
+//                        try {
+//                            nextMusic();
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                });
+//    }
 
     public void togglePlayer() {
 
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (mediaPlayer.isPlaying()) {
+                if (mpv.isRotating()) {
                     try {
                         mpv.stop();
+                        mediaPlayer.pause();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -461,10 +476,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 } else {
                     try {
                         mpv.start();
+                        mediaPlayer.start();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    mediaPlayer.start();
                 }
             }
         });
