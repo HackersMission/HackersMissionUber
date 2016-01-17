@@ -336,7 +336,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         });
     }
 
-    public void changeStatus(final String text) {
+    public void changeStatus(final String text) { 
 //        status.setText(text);
         runOnUiThread(new Runnable() {
             @Override
