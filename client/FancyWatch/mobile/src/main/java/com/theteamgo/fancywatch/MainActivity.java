@@ -268,6 +268,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 new MediaPlayer.OnCompletionListener() {
                     // @Override
                     public void onCompletion(MediaPlayer arg0) {
+                        Log.i("FUCKKKKK","FUCK");
                         try {
                             nextMusic();
                         } catch (Exception e) {
@@ -382,7 +383,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                             }
 
                             playIndex = -1;
-                            playNext();
+                            nextMusic();
+//                            playNext();
 //                            runOnUiThread(new Runnable() {
 //                                @Override
 //                                public void run() {
@@ -496,14 +498,14 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         });
     }
 
-    public void playNext() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                nextMusic();
-            }
-        });
-    }
+//    public void playNext() {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                nextMusic();
+//            }
+//        });
+//    }
 
     public void sendAudioInfo() {
         new StartSendingAudioInfoTask().execute();
@@ -654,11 +656,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 String txt = new String(messageEvent.getData(), "utf-8");
                 //Log.d("FUCK", txt);
                 if(txt.indexOf("换台") != -1)
-                    ((MyApplication) getApplication()).getMainActivity().playNext();
+//                    ((MyApplication) getApplication()).getMainActivity().playNext();
+                    nextMusic();
                 else
                     ((MyApplication) getApplication()).getMainActivity().changeStatus(txt);
             } else if (type == Constant.CONTROL_TYPE_NEXT) {
-                ((MyApplication) getApplication()).getMainActivity().playNext();
+                    nextMusic();
+//                ((MyApplication) getApplication()).getMainActivity().playNext();
             }
         } catch (Exception e) {
             e.printStackTrace();
