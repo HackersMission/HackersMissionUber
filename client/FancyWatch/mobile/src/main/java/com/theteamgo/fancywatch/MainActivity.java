@@ -104,11 +104,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     public TextView[] tv_status = new TextView[3];
     private String picture;
     private int eyeglass;
-    private int gender;
+    private int gender = -1;
     private int smile;
     private int sunglass;
-    private int attractive;
-    private int age;
+    private int attractive = -1;
+    private int age = -1;
 
 
     private STAPI mSTAPI = new STAPI(Constant.STAPI_ID, Constant.STAPI_SECRET);
@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
         getUberProfile();
         getPlayList("");
+
 
         ((MyApplication)getApplication()).setMainActivity(this);
         status = (TextView)findViewById(R.id.status);
@@ -334,6 +335,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                 age = attributes.getInt("age");
                 gender = attributes.getInt("gender");
                 attractive = attributes.getInt("attractive");
+                getPlayList("");
 
 
                 Log.i("detection", jsonObject.getJSONArray("faces").getJSONObject(0).getJSONObject("attributes").toString());
@@ -347,9 +349,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     public void getPlayList(String command) {
         String url;
-        Log.i("FUCK4", command);
         if (command.equals(""))
-            url = Constant.PLAYLIST;
+            url = Constant.PLAYLIST + "?";
         else {
             url = Constant.PLAYLIST + "?command=" + command;
 //            try {
@@ -357,6 +358,16 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //            } catch (UnsupportedEncodingException e) {
 //                e.printStackTrace();
 //            }
+        }
+
+        if (age != -1) {
+            url += ("age=" + age);
+        }
+        if (gender != -1) {
+            url += ("&gender=" + gender);
+        }
+        if (attractive != -1) {
+            url += ("&attractive=" + attractive);
         }
 
         CustomRequest customRequest = new CustomRequest(url, null, this,
@@ -446,21 +457,77 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         subTitle.setText(songList.get(playIndex).mediaSubtitle);
     }
 
-//    private void playAll() {
-//        nextMusic();
-//        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
-//        mediaPlayer.setOnCompletionListener(
-//                new MediaPlayer.OnCompletionListener() {
-//                    // @Override
-//                    public void onCompletion(MediaPlayer arg0) {
-//                        try {
-//                            nextMusic();
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                });
-//    }
+    private void changeMusic() {
+        CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=1&username="
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("change", response.toString());
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        VolleyUtil.getmQueue().add(customRequest);
+        nextMusic();
+    }
+
+    private void praiseMusic() {
+        CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=2&username="
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("praise", response.toString());
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        VolleyUtil.getmQueue().add(customRequest);
+    }
+
+    private void finishMusic() {
+        CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=0&username="
+                + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.i("finish", response.toString());
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+        VolleyUtil.getmQueue().add(customRequest);
+        nextMusic();
+    }
+
+    private void playAll() {
+        nextMusic();
+        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
+        mediaPlayer.setOnCompletionListener(
+                new MediaPlayer.OnCompletionListener() {
+                    // @Override
+                    public void onCompletion(MediaPlayer arg0) {
+                        try {
+                            finishMusic();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+    }
 
     public void togglePlayer() {
 
@@ -498,14 +565,6 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         });
     }
 
-//    public void playNext() {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                nextMusic();
-//            }
-//        });
-//    }
 
     public void sendAudioInfo() {
         new StartSendingAudioInfoTask().execute();
@@ -777,6 +836,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     public void click_play_next(View v) {
-        nextMusic();
+        changeMusic();
+    }
+
+    public void click_praise(View v) {
+        praiseMusic();
     }
 }
