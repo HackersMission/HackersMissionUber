@@ -13,6 +13,7 @@ import urllib2
 import urllib
 import httplib 
 import json
+import random
 
 
 def request_details(request_id,access_token):
@@ -71,6 +72,9 @@ class SendRequest(APIView):
 		# request_url="https://sandbox-api.uber.com/v1/sandbox/products"
 		request_url="https://sandbox-api.uber.com/v1/requests"
 		# test_url="https://sandbox-api.uber.com/v1/products?latitude=37.7759792&longitude=-122.41823"
+		# uber_map=[[116.403838,39.91571],[116.34304,39.947246],[116.326943,39.922904],[116.320379,39.988817],[116.320666,39.998325],[116.279416,39.996556 ],\
+		# [116.360766,39.948008],[116.464682,39.918353],[116.452753,39.936501],[116.403454,39.92444],[116.332524,39.949059]]
+
 		start_latitude=39.918353
 		start_longitude=116.464682
 		end_latitude=39.998325 
@@ -122,7 +126,17 @@ class Test(APIView):
 		# 	print o.request_id
 		# return Response({"status":1, "info":len(order), "data":""})
 		# print get_eta_by_startpoint('39.918353','116.464682','39.998325','116.320666','test1')
-		print get_eta_by_startpoint('39.9184','116.4647','39.9982','116.3208','test1')
+		# print get_eta_by_startpoint('39.9184','116.4647','39.9982','116.3208','test1')
+		uber_map=[[116.403838,39.91571],[116.34304,39.947246],[116.326943,39.922904],[116.320379,39.988817],[116.320666,39.998325],[116.279416,39.996556 ],\
+		[116.360766,39.948008],[116.464682,39.918353],[116.452753,39.936501],[116.403454,39.92444],[116.332524,39.949059]]
+		index1=random.randint(0,len(uber_map))
+		index2=random.randint(0,len(uber_map))
+		while index2==index1:
+			index2=random.randint(0,len(uber_map))
+		print index1
+		print index2
+		print uber_map[index1][1]
+		print uber_map[index1][0]
 		return Response({"status":1, "info":"", "data":""})
 		
 
