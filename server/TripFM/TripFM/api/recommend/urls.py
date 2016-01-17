@@ -8,4 +8,5 @@ urlpatterns = [
     # url(r'^blog/', include('blog.urls')),
     url(r"^recommend/$", views.AskToRecommend.as_view(), name="ask_to_recommend"),
     url(r"^getplaylist/$", views.getPlayList.as_view(), name="get_playlist"),
+    url(r"^operate/$", views.Operate.as_view(), name="get_playlist"),
 ]

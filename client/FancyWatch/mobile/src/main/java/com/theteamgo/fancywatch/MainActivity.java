@@ -3,15 +3,11 @@ package com.theteamgo.fancywatch;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.content.IntentSender;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -21,7 +17,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -37,7 +32,6 @@ import com.mobvoi.android.common.api.MobvoiApiClient.OnConnectionFailedListener;
 //import com.mobvoi.android.common.data.FreezableUtils;
 //import com.mobvoi.android.wearable.Asset;
 import com.mobvoi.android.common.api.ResultCallback;
-import com.mobvoi.android.gesture.GestureType;
 import com.mobvoi.android.wearable.DataApi;
 //import com.mobvoi.android.wearable.DataApi.DataItemResult;
 //import com.mobvoi.android.wearable.DataEvent;
@@ -52,6 +46,9 @@ import com.mobvoi.android.wearable.NodeApi;
 import com.mobvoi.android.wearable.Wearable;
 import com.theteamgo.fancywatch.common.Constant;
 import com.theteamgo.fancywatch.utils.CustomRequest;
+import com.theteamgo.fancywatch.utils.STAPI.STAPI;
+import com.theteamgo.fancywatch.utils.STAPI.STAPIException;
+import com.theteamgo.fancywatch.utils.STAPI.STAPIParameters4Post;
 import com.theteamgo.fancywatch.utils.VolleyUtil;
 
 import org.json.JSONArray;
@@ -99,12 +96,25 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     public int tArrive;
     public String[] status_list = new String[3];
     public TextView[] tv_status = new TextView[3];
+    private int eyeglass;
+    private int gender;
+    private int smile;
+    private int sunglass;
+    private int attractive;
+    private int age;
+
+
+    private STAPI mSTAPI = new STAPI(Constant.STAPI_ID, Constant.STAPI_SECRET);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
+        //测试sensetime
+        new Thread(test_face).start();
 
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
@@ -247,6 +257,33 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             }
         };
         mTimer2.schedule(mTimerTask2, 0, 2000);
+    }
+
+    /**
+     * 网络操作相关的子线程
+     */
+    Runnable test_face = new Runnable() {
+        @Override
+        public void run() {
+            test01InfoApi();
+        }
+    };
+
+    public void test01InfoApi()  {
+        try {
+            Log.i("detection", "测试");
+            STAPIParameters4Post params = new STAPIParameters4Post();
+            params.setAttributes(true);
+            for (int i = 0; i < 1; i++) {
+                JSONObject jsonObject = mSTAPI.faceDetection("https://s3.cn-north-1.amazonaws.com.cn/uber-userpictures/4ca87c739ea247b9d71c.jpeg", params);
+                Log.i("detection", jsonObject.toString());
+                Log.i("detection", jsonObject.get("status").toString());
+            }
+        } catch (STAPIException e) {
+            Log.d("detection", e.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void GetPlayList() {

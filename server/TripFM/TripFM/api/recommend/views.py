@@ -106,7 +106,7 @@ class getPlayList(APIView):
 
 		request_url=request_url+'?start_latitude='+str(abs(loc_lati))+'&start_longitude='\
 		+str(abs(loc_long))+'&end_latitude='+str(abs(des_lati))+'&end_longitude='\
-		+str(abs(des_long))+'&duration='+str(duration)+'&command='+command
+		+str(abs(des_long))+'&duration='+str(duration)+'&command='+command+'&username='+'test1'
 		request = urllib2.Request(request_url)
 		response = urllib2.urlopen(request)
 		ret = response.read()
@@ -119,8 +119,9 @@ class Operate(APIView):
 	def get(self, request, format=None):
 		operation=request.query_params["operation"]
 		cur_uri=request.query_params["url"]
+		username=request.query_params["username"]
 
 		request_url=""
-		request_url=request_url+'?operation='+str(operation)+'&cur_uri='+cur_uri
+		request_url=request_url+'?operation='+str(operation)+'&cur_uri='+cur_uri+'&username='+username
 
 		return Response({"status":1, "data":""})
