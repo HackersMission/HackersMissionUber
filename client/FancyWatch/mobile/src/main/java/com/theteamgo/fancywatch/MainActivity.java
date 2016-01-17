@@ -108,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     private int smile;
     private int sunglass;
     private int attractive = -1;
+    private ImageView like_btn;
     private int age = -1;
 
 
@@ -122,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
         context = this;
+        like_btn = (ImageView)findViewById(R.id.like);
 
         getUberProfile();
         getPlayList("");
@@ -265,18 +267,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         mTimer2.schedule(mTimerTask2, 0, 2000);
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        mediaPlayer.setOnCompletionListener(
-                new MediaPlayer.OnCompletionListener() {
-                    // @Override
-                    public void onCompletion(MediaPlayer arg0) {
-                        Log.i("FUCKKKKK","FUCK");
-                        try {
-                            nextMusic();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+
     }
 
     private void getUberProfile() {
@@ -424,14 +415,28 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             if (playIndex>= songList.size())
                 playIndex=0;
             mpv.stop();
+            Log.i("FUCK", "START_MUSIC");
             mediaPlayer.reset();
             mediaPlayer.setDataSource(songList.get(playIndex).mediaUrl);
             mediaPlayer.prepareAsync();
+            mediaPlayer.setOnCompletionListener(null);
             mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
                     mpv.start();
+                    mp.setOnCompletionListener(
+                            new MediaPlayer.OnCompletionListener() {
+                                // @Override
+                                public void onCompletion(MediaPlayer arg0) {
+                                    Log.i("FUCKKKKK", "FUCK");
+                                    try {
+                                        nextMusic();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
                 }
             });
 
@@ -448,6 +453,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     private void nextMusic() {
         playIndex++;
+        like_btn.setImageResource(R.drawable.icon_like);
         startMusic();
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
         mpv.setMax(songList.get(playIndex).mediaLength);
@@ -477,6 +483,8 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
     }
 
     private void praiseMusic() {
+        like_btn.setImageResource(R.drawable.icon_like_red);
+
         CustomRequest customRequest = new CustomRequest(Constant.PLAYACTION + "?operation=2&username="
                 + ((MyApplication)getApplication()).getSharedPreference("username") + "&url=" + songList.get(playIndex).mediaUrl, null, this,
                 new Response.Listener<JSONObject>() {
