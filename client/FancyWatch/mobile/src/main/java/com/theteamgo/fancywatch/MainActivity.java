@@ -64,6 +64,7 @@ import java.io.IOException;
 import co.mobiwise.playerview.MusicPlayerView;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         context = this;
 
         getUberProfile();
-        GetPlayList();
+        getPlayList("");
 
         ((MyApplication)getApplication()).setMainActivity(this);
         status = (TextView)findViewById(R.id.status);
@@ -285,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzY29wZXMiOlsicmVxdWVzdCIsInByb2ZpbGUiLCJoaXN0b3J5IiwiaGlzdG9yeV9saXRlIiwicmVxdWVzdF9yZWNlaXB0Il0sInN1YiI6ImQxNDYxOThhLTBkNjktNGU3ZS04OTUwLTAyMDA1MWZlOWNlZSIsImlzcyI6InViZXItdXMxIiwianRpIjoiNjE5MDY3NDYtYjJhNy00NzA4LTgwMjAtNjkyZWQ1YjE3ZGVhIiwiZXhwIjoxNDU1NTg2NDM4LCJpYXQiOjE0NTI5OTQ0MzgsInVhY3QiOiJQaVBjdUswVURmZDZhYm0wZFlkY0NQdWFNSEVURnEiLCJuYmYiOjE0NTI5OTQzNDgsImF1ZCI6ImtwaUhwREowS2N4bHFrRjlyc1VQeVdPQmFmWmxhWGxGIn0.eSq1aLrYxLHN57j5myu49a7MOy71HIrqfCyK7MzDK06C-RnoRT2lnVJx1psjmsZmootLshz3A8u98bwAX1A5e6BXPM8kkBjB1_pKRnmYgoTPBzyBp7oh0gfTwXqmE8YlskLpvOi-J6xjBkKCTma7KLlH7iGE2TbSvkx10bT5dWtCAcMploEfvRlbfUpfPfcFnclnevuYcdeOPsipkuP963eP7yBOnPfZumXzr4WIbVtwhTCtvhLHyK1L888ZV63tlP042VlcGkU7ZF2JiZq33CzV9djimHdq_yswNu7cw4bdINY6MD2PAQNe-tLHTVyjo6kYUuNNQMueOC37aEXD9Q");
+                headers.put("Authorization", "Bearer " + ((MyApplication)getApplication()).getSharedPreference("ubertoken"));
                 headers.put("Content-Type", "application/json");
                 return headers;
             }
@@ -329,8 +330,20 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         }
     }
 
-    public void GetPlayList() {
-        CustomRequest customRequest = new CustomRequest(Constant.PLAYLIST, null, this,
+    public void getPlayList(String command) {
+        String url;
+        if (command.equals(""))
+            url = Constant.PLAYLIST;
+        else {
+            url = Constant.PLAYLIST + "?command=" + command;
+            try {
+                url = URLEncoder.encode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+
+        CustomRequest customRequest = new CustomRequest(url, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -463,6 +476,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             @Override
             public void run() {
                 status.setText(text);
+                getPlayList(text);
             }
         });
     }
