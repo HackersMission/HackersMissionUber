@@ -283,7 +283,7 @@ public class MainActivity extends SpeechRecognitionApi.SpeechRecogActivity imple
                             s = "unknown gesture";
                         }
                         //new StartGestureMessageTask().execute(type);
-                        Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
