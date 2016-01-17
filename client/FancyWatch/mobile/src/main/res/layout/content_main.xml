@@ -45,8 +45,8 @@
 
     <ImageView
         android:id="@+id/like"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:background="@drawable/icon_like"
         android:layout_below="@+id/mpv"
         android:layout_centerHorizontal="true"
@@ -57,8 +57,8 @@
 
     <ImageView
         android:id="@+id/next"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
         android:background="@drawable/icon_next"
         android:layout_below="@+id/mpv"
         android:layout_alignRight="@+id/mpv"
@@ -69,9 +69,9 @@
 
     <ImageView
         android:id="@+id/previous"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:background="@drawable/icon_previous"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:background="@drawable/couple"
         android:layout_below="@+id/mpv"
         android:layout_alignLeft="@+id/mpv"
         android:layout_marginTop="50dp"

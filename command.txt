@@ -1,0 +1,5 @@
+curl http://192.168.10.222:8000/api/ubersandbox/sendrequest/?username=test1&seq=0
+curl http://192.168.10.222:8000/api/ubersandbox/accept/?username=test1
+curl http://192.168.10.222:8000/api/ubersandbox/arriving/?username=test1
+curl http://192.168.10.222:8000/api/ubersandbox/inprogress/?username=test1
+curl http://192.168.10.222:8000/api/ubersandbox/completed/?username=test1

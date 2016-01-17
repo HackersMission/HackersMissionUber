@@ -218,6 +218,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                         status_list[1]=("预计"+tArrive/60+"分钟后到达目的地");
                                     } else if (s.equals("completed")) {
                                         status_list[0]=("祝您旅途愉快");
+                                        status_list[1]="";
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -230,6 +231,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //                                Log.i("FUCKERROR", error.toString());
 //                                error.printStackTrace();
                                 status_list[0]=("欢迎乘坐Uber");
+                                status_list[1]="";
                             }
                         }) {
                     @Override
