@@ -14,6 +14,8 @@ import urllib2
 import urllib
 import httplib 
 import json
+from urllib import quote
+from urllib import urlencode
 
 
 def getKeyWords(command):
@@ -21,6 +23,7 @@ def getKeyWords(command):
 	r = nlp.extract_keywords(command, top_k=3)
 	l = []
 	for k,v in r:
+		v = v.encode('utf8')
 		l.append(v)
 	return l
 
@@ -100,13 +103,43 @@ class getPlayList(APIView):
 
 		try:
 			command=request.query_params["command"]
+			print command
 		except:
 			command=""
-		command=json.dumps(getKeyWords(command))
+		# command=json.dumps(getKeyWords(command))
+		print command
+		key_list=getKeyWords(command)
+		key='['
+		count=0
+		for l in key_list:
+			key=key+'"'+l+'"'
+			if count<len(key_list)-1:
+				key=key+','
+			count=count+1
+		key=key+']'
+		command=key
+		command=quote(command)
+		print command
+
+		try:
+			age=request.query_params["age"]
+		except:
+			age=""
+		try:
+			gender=request.query_params["gender"]
+		except:
+			gender=""
+		try:
+			attractive=request.query_params["attractive"]
+		except:
+			attractive=""
 
 		request_url=request_url+'?start_latitude='+str(abs(loc_lati))+'&start_longitude='\
 		+str(abs(loc_long))+'&end_latitude='+str(abs(des_lati))+'&end_longitude='\
-		+str(abs(des_long))+'&duration='+str(duration)+'&command='+command+'&username='+'test1'
+		+str(abs(des_long))+'&duration='+str(duration)+'&command='+command+'&username='+'test1'\
+		+'&age='+str(age)+'&gender='+str(gender)+'&attractive='+str(attractive)
+
+		print request_url
 		request = urllib2.Request(request_url)
 		response = urllib2.urlopen(request)
 		ret = response.read()
@@ -121,7 +154,22 @@ class Operate(APIView):
 		cur_uri=request.query_params["url"]
 		username=request.query_params["username"]
 
-		request_url=""
-		request_url=request_url+'?operation='+str(operation)+'&cur_uri='+cur_uri+'&username='+username
+		request_url="http://192.168.11.39:2088/"
+		request_url=request_url+'?callBack='+str(operation)+'&mediaUrl='+cur_uri+'&userName='+username
+		print request_url
 
+		request = urllib2.Request(request_url)
+		response = urllib2.urlopen(request)
+		ret = response.read()
+		print ret
+		# key_list=getKeyWords('那英是个傻逼')
+		# key='['
+		# count=0
+		# for l in key_list:
+		# 	key=key+'"'+l+'"'
+		# 	if count<len(key_list)-1:
+		# 		key=key+','
+		# 	count=count+1
+		# key=key+']'
+		# print key
 		return Response({"status":1, "data":""})

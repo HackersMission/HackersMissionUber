@@ -16,6 +16,7 @@ import json
 import random
 
 
+
 def request_details(request_id,access_token):
 	request_url="https://sandbox-api.uber.com/v1/requests/"
 	request_url=request_url+request_id
@@ -75,10 +76,23 @@ class SendRequest(APIView):
 		# uber_map=[[116.403838,39.91571],[116.34304,39.947246],[116.326943,39.922904],[116.320379,39.988817],[116.320666,39.998325],[116.279416,39.996556 ],\
 		# [116.360766,39.948008],[116.464682,39.918353],[116.452753,39.936501],[116.403454,39.92444],[116.332524,39.949059]]
 
-		start_latitude=39.918353
-		start_longitude=116.464682
-		end_latitude=39.998325 
-		end_longitude=-116.320666
+		# start_latitude=39.918353
+		# start_longitude=116.464682
+		# end_latitude=39.998325 
+		# end_longitude=-116.320666
+		try:
+			seq = int(request.query_params["seq"])
+		except:
+			seq = 0
+
+		uber_map=[[116.403838,39.91571],[116.34304,39.947246],[116.326943,39.922904],[116.320379,39.988817],[116.320666,39.998325],[116.279416,39.996556 ],\
+		[116.360766,39.948008],[116.464682,39.918353],[116.452753,39.936501],[116.403454,39.92444],[116.332524,39.949059]]
+		test_map=[[[116.120666,39.998325],[116.464682,39.918353]],[[116.320666,39.998325],[116.279416,39.996556 ]],[[116.320379,39.988817],[116.452753,39.936501]]]
+
+		start_latitude=test_map[seq][0][1]
+		start_longitude=test_map[seq][0][0]
+		end_latitude=test_map[seq][1][1]
+		end_longitude=test_map[seq][1][0]
 
 		try:
 			username = request.query_params["username"]
@@ -129,14 +143,21 @@ class Test(APIView):
 		# print get_eta_by_startpoint('39.9184','116.4647','39.9982','116.3208','test1')
 		uber_map=[[116.403838,39.91571],[116.34304,39.947246],[116.326943,39.922904],[116.320379,39.988817],[116.320666,39.998325],[116.279416,39.996556 ],\
 		[116.360766,39.948008],[116.464682,39.918353],[116.452753,39.936501],[116.403454,39.92444],[116.332524,39.949059]]
-		index1=random.randint(0,len(uber_map))
-		index2=random.randint(0,len(uber_map))
-		while index2==index1:
-			index2=random.randint(0,len(uber_map))
-		print index1
-		print index2
-		print uber_map[index1][1]
-		print uber_map[index1][0]
+		test_map=[[[116.120666,39.998325],[116.464682,39.918353]],[[116.320666,39.998325],[116.279416,39.996556 ]]]
+
+		start_latitude=test_map[0][0][1]
+		start_longitude=test_map[0][0][0]
+		end_latitude=test_map[0][1][1]
+		end_longitude=test_map[0][1][0]
+		print get_eta_by_startpoint(str(start_latitude),str(start_longitude),str(end_latitude),str(end_longitude),'test1')
+		# index1=random.randint(0,len(uber_map))
+		# index2=random.randint(0,len(uber_map))
+		# while index2==index1:
+		# 	index2=random.randint(0,len(uber_map))
+		# print index1
+		# print index2
+		# print uber_map[index1][1]
+		# print uber_map[index1][0]
 		return Response({"status":1, "info":"", "data":""})
 		
 
