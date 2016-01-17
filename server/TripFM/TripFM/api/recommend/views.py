@@ -111,21 +111,16 @@ class getPlayList(APIView):
 		response = urllib2.urlopen(request)
 		ret = response.read()
 		print ret
-		# sig={
-		#     "_id" : "569a4bc16172250611f960c6",
-		#     "rytm" : 3,
-		#     "tone" : 3,
-		#     "tmbr" : 4,
-		#     "year" : 4,
-		#     "lang" : "日",
-		#     "url" : "http://m.qingting.fm/vchannels/137422/programs/3879480",
-		#     "mediaSubtitle" : "Hello( 日 本 )",
-		#     "mediaUrl" : "http://m.qingting.fm/m4a/569224bc7b28aa1a6d33e24e_4662924_64.m4a",
-		#     "mediaTitle" : "【卒業メモリーズ~サヨナラ、あなた】为了你而早起，为了你而改变，你是我的动力",
-		#     "mediaLengthStr" : "00:05:55",
-		#     "mediaImageUrl" : "http://pic.qingting.fm/2015/1209/20151209200925579.jpg",
-		#     "mediaLength" : 355
-		# }
-		# playlist.append(sig)
-		# playlist.append("http://m.qingting.fm/vod/00/00/0000000000000000000026530084_24.m4a")
 		return Response({"status":1, "data":ret})
+
+
+
+class Operate(APIView):
+	def get(self, request, format=None):
+		operation=request.query_params["operation"]
+		cur_uri=request.query_params["url"]
+
+		request_url=""
+		request_url=request_url+'?operation='+str(operation)+'&cur_uri='+cur_uri
+
+		return Response({"status":1, "data":""})
