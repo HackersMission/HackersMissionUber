@@ -340,10 +340,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     public void getPlayList(String command) {
         String url;
+
         if (command.equals(""))
             url = Constant.PLAYLIST + "?";
         else {
-            url = Constant.PLAYLIST + "?command=" + command;
+            url = Constant.PLAYLIST + "?command=" + command + "&";
 //            try {
 //                url = URLEncoder.encode(url, "UTF-8");
 //            } catch (UnsupportedEncodingException e) {
@@ -361,6 +362,13 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             url += ("&attractive=" + attractive);
         }
 
+        /*try {
+                url = URLEncoder.encode(url, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }*/
+        Log.d("command", url);
+
         CustomRequest customRequest = new CustomRequest(url, null, this,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -370,6 +378,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                             jsonArray = new JSONArray(response.getString("data"));
                             Log.i("test", jsonArray.toString());
                             song_length = jsonArray.length();
+                            Log.i("FUCKSONG",songList.size()+"");
                             songList.clear();
                             for (int i = 0 ; i < jsonArray.length() ; i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -380,11 +389,10 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
                                 song.mediaSubtitle = jsonObject.getString("mediaSubtitle");
                                 song.mediaLength = jsonObject.getInt("mediaLength");
                                 status_list[2]=(jsonObject.getString("msg"));
-                                if (song.mediaLength < 300)
-                                    songList.add(song);
+                                songList.add(song);
                             }
-
-                            playIndex = -1;
+                            Log.i("FUCKSONG2",songList.size()+"");
+                            playIndex = 0;
                             nextMusic();
 //                            playNext();
 //                            runOnUiThread(new Runnable() {
@@ -412,8 +420,12 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 
     private void startMusic() {
         try {
-            if (playIndex>= songList.size())
-                playIndex=0;
+            if (songList.size() == 0 ) {
+                return;
+            }
+            if (playIndex>= songList.size()) {
+                playIndex = 0;
+            }
             mpv.stop();
             Log.i("FUCK", "START_MUSIC");
             mediaPlayer.reset();
@@ -452,7 +464,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
 //    }
 
     private void nextMusic() {
-        playIndex++;
+        if (songList.size()==0) {
+            return;
+        }
         like_btn.setImageResource(R.drawable.icon_like);
         startMusic();
         mpv.setCoverURL(songList.get(playIndex).mediaImageUrl);
@@ -461,6 +475,7 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         title.setText(songList.get(playIndex).mediaTitle);
         audioTitle = songList.get(playIndex).mediaTitle;
         subTitle.setText(songList.get(playIndex).mediaSubtitle);
+        playIndex++;
     }
 
     private void changeMusic() {
@@ -521,21 +536,6 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
         nextMusic();
     }
 
-    private void playAll() {
-        nextMusic();
-        /* 当MediaPlayer.OnCompletionLister会运行的Listener */
-        mediaPlayer.setOnCompletionListener(
-                new MediaPlayer.OnCompletionListener() {
-                    // @Override
-                    public void onCompletion(MediaPlayer arg0) {
-                        try {
-                            finishMusic();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-    }
 
     public void togglePlayer() {
 
@@ -568,9 +568,9 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             @Override
             public void run() {
                 status.setText(text);
-                getPlayList(text);
             }
         });
+        getPlayList(text);
     }
 
 
@@ -721,15 +721,26 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             //Toast.makeText(getApplicationContext(), "onGestureDetected " + s, Toast.LENGTH_SHORT).show();
             else if (type == Constant.CONTROL_WORD_COMMAND) {
                 String txt = new String(messageEvent.getData(), "utf-8");
-                //Log.d("FUCK", txt);
-                if(txt.indexOf("换台") != -1)
-//                    ((MyApplication) getApplication()).getMainActivity().playNext();
-                    nextMusic();
+                Log.d("FUCK", txt);
+                if(txt.indexOf("换台") != -1) {
+                    Log.i("FUCK", "huantai");
+                    runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    nextMusic();
+
+                                }
+                            });
+                }
                 else
                     ((MyApplication) getApplication()).getMainActivity().changeStatus(txt);
             } else if (type == Constant.CONTROL_TYPE_NEXT) {
-                    nextMusic();
-//                ((MyApplication) getApplication()).getMainActivity().playNext();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        nextMusic();
+                    }
+                });
             }
         } catch (Exception e) {
             e.printStackTrace();
