@@ -371,11 +371,11 @@ public class MainActivity extends AppCompatActivity implements DataApi.DataListe
             url += ("&attractive=" + attractive);
         }
 
-        try {
+        /*try {
                 url = URLEncoder.encode(url, "UTF-8");
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
-            }
+            }*/
         Log.d("command", url);
 
         CustomRequest customRequest = new CustomRequest(url, null, this,
